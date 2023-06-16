@@ -15,9 +15,9 @@ public partial class PlaygroundContext : DbContext
     {
     }
 
-    public virtual DbSet<CMN_PER_PersonalInfo> CMN_PER_PersonalInfo { get; set; }
+    public virtual DbSet<AUTH_Accounts> AUTH_Accounts { get; set; }
 
-    public virtual DbSet<USR_Users> USR_Users { get; set; }
+    public virtual DbSet<AUTH_Sessions> AUTH_Sessions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -25,35 +25,32 @@ public partial class PlaygroundContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<CMN_PER_PersonalInfo>(entity =>
+        modelBuilder.Entity<AUTH_Accounts>(entity =>
         {
-            entity.HasKey(e => e.CMN_PER_PersonalInfo1);
+            entity.HasKey(e => e.AUTH_AccountID);
 
-            entity.Property(e => e.CMN_PER_PersonalInfo1).HasColumnName("CMN_PER_PersonalInfo");
-            entity.Property(e => e.FirstName)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.LastName)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-
-            entity.HasOne(d => d.USR_User_Ref).WithMany(p => p.CMN_PER_PersonalInfo)
-                .HasForeignKey(d => d.USR_User_RefID)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CMN_PER_PersonalInfo_USR_Users");
-        });
-
-        modelBuilder.Entity<USR_Users>(entity =>
-        {
-            entity.HasKey(e => e.USR_UserID);
-
-            entity.Property(e => e.CreationDate).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Password)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<AUTH_Sessions>(entity =>
+        {
+            entity.HasKey(e => e.AUTH_SessionID);
+
+            entity.HasIndex(e => e.Account_RefID, "IX_Account_RefID");
+
+            entity.Property(e => e.SessionToken)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Account_Ref).WithMany(p => p.AUTH_Sessions)
+                .HasForeignKey(d => d.Account_RefID)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AUTH_Sessions_AUTH_Accounts");
         });
 
         OnModelCreatingPartial(modelBuilder);
