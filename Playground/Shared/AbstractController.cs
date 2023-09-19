@@ -9,9 +9,9 @@ namespace Playground.Shared
     public class AbstractController : ControllerBase
     {
         private IHost _host;
-        private PlaygroundContext _DBContext;
+        private PlaygroundContext _DBContext = null!;
         private ILogger logger;
-        private string _sessionToken;
+        private string _sessionToken = null!;
 
         protected AbstractController(IHost host, ILogger logger)
         {
@@ -232,7 +232,7 @@ namespace Playground.Shared
                 Console.WriteLine(ex);
             }
 
-            return sessionToken;
+            return sessionToken ?? string.Empty;
         }
     }
 }

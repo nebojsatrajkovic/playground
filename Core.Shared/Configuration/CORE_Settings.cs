@@ -7,12 +7,12 @@
 
     public class CORE_Configuration : ICORE_Configuration
     {
-        public static string AuthKey { get; set; }
-        public CORE_Database Database { get; set; }
+        public static string AuthKey { get; set; } = string.Empty;
+        public CORE_Database Database { get; set; } = null!;
     }
 
     public class CORE_Database
     {
-        public string ConnectionString { get; set; }
+        public string ConnectionString { get; set; } = null!;
     }
 }

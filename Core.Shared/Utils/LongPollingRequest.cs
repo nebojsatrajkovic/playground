@@ -23,7 +23,7 @@
             }
         }
 
-        public static void Update(string channel, string key, LongPollingService_Response data = null)
+        public static void Update(string channel, string key, LongPollingService_Response? data = null)
         {
             lock (_requests)
             {

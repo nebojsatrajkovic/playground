@@ -8,14 +8,14 @@ namespace Core.Shared.Utils
     {
         public static void UpdateCookie(IHttpContextAccessor httpContextAccessor, string sessionToken, string cookieDomain)
         {
-            httpContextAccessor.HttpContext.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
-            httpContextAccessor.HttpContext.Response.Headers.Add(CORE_Configuration.AuthKey, sessionToken);
+            httpContextAccessor.HttpContext?.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+            httpContextAccessor.HttpContext?.Response.Headers.Add(CORE_Configuration.AuthKey, sessionToken);
 
 #if DEBUG
             cookieDomain = "localhost";
 #endif
 
-            httpContextAccessor.HttpContext.Response.Cookies.Append(CORE_Configuration.AuthKey, sessionToken, new CookieOptions
+            httpContextAccessor.HttpContext?.Response.Cookies.Append(CORE_Configuration.AuthKey, sessionToken, new CookieOptions
             {
                 Expires = DateTime.Now.AddHours(8),
                 Domain = cookieDomain,
