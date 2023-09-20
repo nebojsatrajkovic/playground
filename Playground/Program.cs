@@ -3,7 +3,6 @@ using Core.DB.Initializers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +14,6 @@ var coreConfiguration = coreConfigurationSection.Get<CORE_Configuration>();
 coreConfiguration.Database = coreConfigurationSection.GetSection(nameof(CORE_Database)).Get<CORE_Database>();
 
 #endregion core settings
-
-builder.Services.AddDbContext<PlaygroundContext>(options => options.UseSqlServer(coreConfiguration.Database.ConnectionString));
 
 builder.Services.AddSingleton<ICORE_Configuration>(coreConfiguration);
 
@@ -49,6 +46,12 @@ var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .Build();
+
+#warning remove this
+var test = AUTH_Accounts.DB.Search(new CORE_Database { ConnectionString = "Server=ALEXIOS\\SQLEXPRESS;Database=Playground;Trusted_Connection=True;" }, new AUTH_Accounts.Query
+{
+    AUTH_AccountID = Guid.Parse("7cc0e7d6-8e39-4521-bd6a-d1d00d82b73d")
+});
 
 if (true || app.Environment.IsDevelopment())
 {

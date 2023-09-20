@@ -1,15 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Core.Shared;
 
 namespace Core.DB.Database;
 
-public partial class AUTH_Accounts
+public static class AUTH_Accounts
 {
-    public int AUTH_AccountID { get; set; }
+    public class Model
+    {
+        public Guid AUTH_AccountID { get; set; }
 
-    public string Email { get; set; } = null!;
+        public string Email { get; set; } = null!;
 
-    public string Password { get; set; } = null!;
+        public string Password { get; set; } = null!;
+    }
 
-    public virtual ICollection<AUTH_Sessions> AUTH_Sessions { get; set; } = new List<AUTH_Sessions>();
+    public class Query
+    {
+        public Guid? AUTH_AccountID { get; set; } = null;
+        public string? Email { get; set; } = null;
+        public string? Password { get; set; } = null;
+    }
+
+    public class DB : ADBTable<Model, Query>
+    {
+
+    }
 }

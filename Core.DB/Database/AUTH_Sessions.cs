@@ -1,19 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Core.Shared;
 
 namespace Core.DB.Database;
 
-public partial class AUTH_Sessions
+public class AUTH_Sessions
 {
-    public int AUTH_SessionID { get; set; }
+    public class Model
+    {
+        public Guid AUTH_SessionID { get; set; }
 
-    public string SessionToken { get; set; } = null!;
+        public string SessionToken { get; set; } = null!;
 
-    public DateTime ValidFrom { get; set; }
+        public DateTime ValidFrom { get; set; }
 
-    public DateTime ValidTo { get; set; }
+        public DateTime ValidTo { get; set; }
 
-    public int Account_RefID { get; set; }
+        public Guid Account_RefID { get; set; }
+    }
 
-    public virtual AUTH_Accounts Account_Ref { get; set; } = null!;
+    public class Query
+    {
+        public Guid? AUTH_SessionID { get; set; } = null;
+        public string? SessionToken { get; set; } = null;
+        public DateTime? ValidFrom { get; set; } = null;
+        public DateTime? ValidTo { get; set; } = null;
+        public Guid? Account_RefID { get; set; } = null;
+    }
+
+    public class DB : ADBTable<Model, Query>
+    {
+
+    }
 }

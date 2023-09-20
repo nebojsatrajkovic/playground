@@ -1,15 +1,11 @@
-﻿using Core.DB.Database;
-using Core.Shared.Configuration;
-using Core.Shared.ExceptionHandling.Exceptions;
+﻿using Core.Shared.Configuration;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Playground.Shared
 {
     public class AbstractController : ControllerBase
     {
         private IHost _host;
-        private PlaygroundContext _DBContext = null!;
         private ILogger logger;
         private string _sessionToken = null!;
 
@@ -19,17 +15,7 @@ namespace Playground.Shared
             this.logger = logger;
         }
 
-        public PlaygroundContext DBContext
-        {
-            get
-            {
-                return _DBContext;
-            }
-            set
-            {
-                _DBContext = value;
-            }
-        }
+       
 
         public string SessionToken
         {
@@ -43,174 +29,174 @@ namespace Playground.Shared
             }
         }
 
-        private void _ExecuteCommitAction(Action action, bool authenticate)
-        {
-            var context = _host.Services.CreateScope().ServiceProvider.GetRequiredService<PlaygroundContext>();
+        //private void _ExecuteCommitAction(Action action, bool authenticate)
+        //{
+        //    var context = _host.Services.CreateScope().ServiceProvider.GetRequiredService<PlaygroundContext>();
 
-            using var dbContextTransaction = context.Database.BeginTransaction();
-            try
-            {
-                if (authenticate)
-                {
-                    try
-                    {
-                        if (!_VerifySession(context))
-                        {
-                            throw new CORE_UnauthenticatedException("Unauthenticated request detected!");
-                        }
+        //    using var dbContextTransaction = context.Database.BeginTransaction();
+        //    try
+        //    {
+        //        if (authenticate)
+        //        {
+        //            try
+        //            {
+        //                if (!_VerifySession(context))
+        //                {
+        //                    throw new CORE_UnauthenticatedException("Unauthenticated request detected!");
+        //                }
 
-                        _sessionToken = _GetSessionToken();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
+        //                _sessionToken = _GetSessionToken();
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Console.WriteLine(ex);
 
-                        throw;
-                    }
-                }
+        //                throw;
+        //            }
+        //        }
 
-                _DBContext = context;
+        //        _DBContext = context;
 
-                action();
+        //        action();
 
-                dbContextTransaction.Commit();
-            }
-            catch (Exception ex)
-            {
-                dbContextTransaction.Rollback();
-                logger.LogError(ex, ex.Message);
-                throw;
-            }
-        }
+        //        dbContextTransaction.Commit();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        dbContextTransaction.Rollback();
+        //        logger.LogError(ex, ex.Message);
+        //        throw;
+        //    }
+        //}
 
-        private T _ExecuteCommitAction<T>(Func<T> action, bool authenticate)
-        {
-            var context = _host.Services.CreateScope().ServiceProvider.GetRequiredService<PlaygroundContext>();
+        //private T _ExecuteCommitAction<T>(Func<T> action, bool authenticate)
+        //{
+        //    var context = _host.Services.CreateScope().ServiceProvider.GetRequiredService<PlaygroundContext>();
 
-            using var dbContextTransaction = context.Database.BeginTransaction();
-            try
-            {
-                if (authenticate)
-                {
-                    try
-                    {
-                        if (!_VerifySession(context))
-                        {
-                            throw new CORE_UnauthenticatedException("Unauthenticated request detected!");
-                        }
+        //    using var dbContextTransaction = context.Database.BeginTransaction();
+        //    try
+        //    {
+        //        if (authenticate)
+        //        {
+        //            try
+        //            {
+        //                if (!_VerifySession(context))
+        //                {
+        //                    throw new CORE_UnauthenticatedException("Unauthenticated request detected!");
+        //                }
 
-                        _sessionToken = _GetSessionToken();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
+        //                _sessionToken = _GetSessionToken();
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Console.WriteLine(ex);
 
-                        throw;
-                    }
-                }
+        //                throw;
+        //            }
+        //        }
 
-                _DBContext = context;
+        //        _DBContext = context;
 
-                var result = action();
+        //        var result = action();
 
-                dbContextTransaction.Commit();
+        //        dbContextTransaction.Commit();
 
-                context.Database.CloseConnection();
+        //        context.Database.CloseConnection();
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                dbContextTransaction.Rollback();
-                context.Database.CloseConnection();
-                logger.LogError(ex, ex.Message);
-                throw;
-            }
-        }
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        dbContextTransaction.Rollback();
+        //        context.Database.CloseConnection();
+        //        logger.LogError(ex, ex.Message);
+        //        throw;
+        //    }
+        //}
 
         #region commit with auth
 
-        protected void ExecuteCommitAction(Action action)
-        {
-            _ExecuteCommitAction(action, true);
-        }
+        //protected void ExecuteCommitAction(Action action)
+        //{
+        //    _ExecuteCommitAction(action, true);
+        //}
 
-        protected T ExecuteCommitAction<T>(Func<T> action)
-        {
-            return _ExecuteCommitAction(action, true);
-        }
+        //protected T ExecuteCommitAction<T>(Func<T> action)
+        //{
+        //    return _ExecuteCommitAction(action, true);
+        //}
 
-        protected void ExecuteCommitActionTask(Action action)
-        {
-            Task.Factory.StartNew(() =>
-            {
-                _ExecuteCommitAction(action, true);
-            });
-        }
+        //protected void ExecuteCommitActionTask(Action action)
+        //{
+        //    Task.Factory.StartNew(() =>
+        //    {
+        //        _ExecuteCommitAction(action, true);
+        //    });
+        //}
 
-        protected Task<T> ExecuteCommitActionTask<T>(Func<T> action)
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                return _ExecuteCommitAction(action, true);
-            });
-        }
+        //protected Task<T> ExecuteCommitActionTask<T>(Func<T> action)
+        //{
+        //    return Task.Factory.StartNew(() =>
+        //    {
+        //        return _ExecuteCommitAction(action, true);
+        //    });
+        //}
 
-        #endregion commit with auth
+        //#endregion commit with auth
 
-        #region commit with no auth
+        //#region commit with no auth
 
-        protected void ExecuteUnauthenticatedCommitAction(Action action)
-        {
-            _ExecuteCommitAction(action, false);
-        }
+        //protected void ExecuteUnauthenticatedCommitAction(Action action)
+        //{
+        //    _ExecuteCommitAction(action, false);
+        //}
 
-        protected T ExecuteUnauthenticatedCommitAction<T>(Func<T> action)
-        {
-            return _ExecuteCommitAction(action, false);
-        }
+        //protected T ExecuteUnauthenticatedCommitAction<T>(Func<T> action)
+        //{
+        //    return _ExecuteCommitAction(action, false);
+        //}
 
-        protected void ExecuteUnauthenticatedCommitActionTask(Action action)
-        {
-            Task.Factory.StartNew(() =>
-            {
-                _ExecuteCommitAction(action, false);
-            });
-        }
+        //protected void ExecuteUnauthenticatedCommitActionTask(Action action)
+        //{
+        //    Task.Factory.StartNew(() =>
+        //    {
+        //        _ExecuteCommitAction(action, false);
+        //    });
+        //}
 
-        protected Task<T> ExecuteUnauthenticatedCommitActionTask<T>(Func<T> action)
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                return _ExecuteCommitAction(action, false);
-            });
-        }
+        //protected Task<T> ExecuteUnauthenticatedCommitActionTask<T>(Func<T> action)
+        //{
+        //    return Task.Factory.StartNew(() =>
+        //    {
+        //        return _ExecuteCommitAction(action, false);
+        //    });
+        //}
 
         #endregion commit with no auth
 
-        internal bool _VerifySession(PlaygroundContext context)
-        {
-            var isAuthenticated = false;
+        //internal bool _VerifySession(PlaygroundContext context)
+        //{
+        //    var isAuthenticated = false;
 
-            try
-            {
-                var sessionToken = _GetSessionToken();
+        //    try
+        //    {
+        //        var sessionToken = _GetSessionToken();
 
-                if (!string.IsNullOrEmpty(sessionToken))
-                {
+        //        if (!string.IsNullOrEmpty(sessionToken))
+        //        {
 
-                }
+        //        }
 
-                // TODO implement
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
+        //        // TODO implement
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex);
+        //    }
 
-            return isAuthenticated;
-        }
+        //    return isAuthenticated;
+        //}
 
         internal string _GetSessionToken()
         {
