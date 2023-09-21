@@ -1,0 +1,26 @@
+﻿using Core.Shared;
+using Core.Shared.Attributes;
+
+namespace ${NAMESPACE};
+
+public static class ${TABLE_NAME}
+{
+    public class Model
+    {
+        [CORE_DB_PrimaryKey]
+${MODEL_ATTRIBUTES}
+        [CORE_DB_Ignore]
+        [CORE_DB_AlreadySaved]
+        public bool IsAlreadySaved { get; set; }
+    }
+
+    public class Query
+    {
+${QUERY_ATTRIBUTES}
+    }
+
+    public class DB : ADBTable<Model, Query>
+    {
+
+    }
+}

@@ -1,7 +1,7 @@
-﻿using Core.Shared;
+using Core.Shared;
 using Core.Shared.Attributes;
 
-namespace Core.DB.Database;
+namespace Core.DB.Database.Tables;
 
 public static class AUTH_Accounts
 {
@@ -24,6 +24,7 @@ public static class AUTH_Accounts
         public string? Email { get; set; } = null;
         public string? Password { get; set; } = null;
         public bool? IsDeleted { get; set; } = null;
+
     }
 
     public class DB : ADBTable<Model, Query>

@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Database\" />
+    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
+    <Folder Include="Database\" />
   </ItemGroup>
 
 </Project>

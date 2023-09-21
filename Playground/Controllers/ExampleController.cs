@@ -1,6 +1,6 @@
-﻿using Core.DB.Database;
-using Core.Shared.Configuration;
+﻿using Core.Shared.Configuration;
 using Core.Shared.Controllers;
+using Core.Shared.Database.Generator;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Playground.Controllers
@@ -9,9 +9,11 @@ namespace Playground.Controllers
     [ApiController]
     public class ExampleController : AbstractController
     {
-        public ExampleController(ILogger<ExampleController> logger, ICORE_Configuration coreConfiguration) : base(logger, coreConfiguration)
-        {
+        readonly ICORE_DB_GENERATOR_Configuration coreGeneratorConfiguration;
 
+        public ExampleController(ILogger<ExampleController> logger, ICORE_Configuration coreConfiguration, ICORE_DB_GENERATOR_Configuration coreGeneratorConfiguration) : base(logger, coreConfiguration)
+        {
+            this.coreGeneratorConfiguration = coreGeneratorConfiguration;
         }
 
         [HttpPost]
@@ -20,21 +22,23 @@ namespace Playground.Controllers
         {
             return ExecuteCommitAction(() =>
             {
-                var newEntry = new AUTH_Accounts.Model
-                {
-                    Email = "random@mail.com",
-                    IsDeleted = false,
-                    Password = "1234"
-                };
+                CORE_MSSQL_DB_Generator.GenerateORMs_FromMSSQL(DB_Connection, coreGeneratorConfiguration);
 
-                var result = AUTH_Accounts.DB.Save(DB_Connection, newEntry);
+                //var newEntry = new AUTH_Accounts.Model
+                //{
+                //    Email = "random@mail.com",
+                //    IsDeleted = false,
+                //    Password = "1234"
+                //};
 
-                var debug = AUTH_Accounts.DB.Search(DB_Connection, new AUTH_Accounts.Query
-                {
+                //var result = AUTH_Accounts.DB.Save(DB_Connection, newEntry);
 
-                });
+                //var debug = AUTH_Accounts.DB.Search(DB_Connection, new AUTH_Accounts.Query
+                //{
 
-                return debug;
+                //});
+
+                return 0;
             });
         }
     }

@@ -12,9 +12,17 @@ var coreConfigurationSection = builder.Configuration.GetSection(nameof(CORE_Conf
 var coreConfiguration = coreConfigurationSection.Get<CORE_Configuration>();
 coreConfiguration.Database = coreConfigurationSection.GetSection(nameof(CORE_Database)).Get<CORE_Database>();
 
+builder.Services.AddSingleton<ICORE_Configuration>(coreConfiguration);
+
 #endregion core settings
 
-builder.Services.AddSingleton<ICORE_Configuration>(coreConfiguration);
+#region core generator settings
+
+var coreGeneratorConfiguration = builder.Configuration.GetSection(nameof(CORE_DB_GENERATOR_Configuration)).Get<CORE_DB_GENERATOR_Configuration>();
+
+builder.Services.AddSingleton<ICORE_DB_GENERATOR_Configuration>(coreGeneratorConfiguration);
+
+#endregion core generator settings
 
 builder.Services.AddControllers().AddJsonOptions(json =>
 {

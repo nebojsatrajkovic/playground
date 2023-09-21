@@ -198,10 +198,7 @@ namespace Core.Shared
             {
                 var property = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_AlreadySaved)));
 
-                if (property != null)
-                {
-                    property.SetValue(parameter, true);
-                }
+                property?.SetValue(parameter, true);
             }
 
             return parameter;

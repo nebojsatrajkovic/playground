@@ -8,6 +8,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Database\Generator\Templates\DB_TABLE_TEMPLATE.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Database\Generator\Templates\DB_TABLE_TEMPLATE.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
