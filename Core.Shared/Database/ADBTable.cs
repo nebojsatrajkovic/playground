@@ -1,10 +1,10 @@
 ﻿using Core.Shared.Attributes;
 using Core.Shared.Database;
 using Core.Shared.Utils.Extensions;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Components.Forms;
+using System;
 using System.Data.SqlClient;
-using System.Reflection.Metadata;
+using System.Reflection;
 using System.Text;
 
 namespace Core.Shared
@@ -30,7 +30,7 @@ namespace Core.Shared
 
             using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
-            var reader = command.ExecuteReader();
+            using var reader = command.ExecuteReader();
 
             try
             {
@@ -38,7 +38,9 @@ namespace Core.Shared
                 {
                     var item = new T1();
 
-                    foreach (var property in typeof(T1).GetProperties())
+                    var properties = typeof(T1).GetFilteredProperties();
+
+                    foreach (var property in properties)
                     {
                         property.SetValue(item, reader[property.Name]);
                     }
@@ -186,22 +188,83 @@ namespace Core.Shared
 
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
-            throw new NotImplementedException();
-        }
+            var (columns, values) = GetColumnsAndValues(parameter);
 
-        internal static string GetColumnsQuery()
-        {
-            var builder = new StringBuilder();
+            var queryString = $"INSERT INTO [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] ({columns}) VALUES ({values})";
 
-            foreach (var property in typeof(T1).GetProperties())
+            using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+
+            if (command.ExecuteNonQuery() > 0)
             {
-                builder.Append($"[{property.Name}], ");
+                var property = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_AlreadySaved)));
+
+                if (property != null)
+                {
+                    property.SetValue(parameter, true);
+                }
             }
 
-            var columns = builder.ToString();
+            return parameter;
+        }
+
+        internal static (string columns, string values) GetColumnsAndValues(T1 parameter)
+        {
+            var properties = typeof(T1).GetFilteredProperties();
+
+            var columnsBuilder = new StringBuilder();
+            var valuesBuilder = new StringBuilder();
+
+            foreach (var property in properties)
+            {
+                columnsBuilder.Append($"[{property.Name}], ");
+
+                var value = property.GetValue(parameter, null);
+
+                if (value == null)
+                {
+                    valuesBuilder.Append("NULL, ");
+                    continue;
+                }
+
+                var valueType = value.GetType();
+
+                string segment;
+
+                if
+                (
+                        valueType == typeof(double) ||
+                        valueType == typeof(float) ||
+                        valueType == typeof(decimal) ||
+                        valueType == typeof(int)
+                        )
+                {
+                    segment = $"{value}";
+                }
+                else if (valueType == typeof(DateTime))
+                {
+                    segment = $"'{(DateTime)value:yyyy-MM-dd HH:mm:ss}'";
+                }
+                else if (valueType == typeof(bool))
+                {
+                    segment = (bool)value ? "1" : "0";
+                }
+                else
+                {
+                    segment = $"'{value}'";
+                }
+
+                segment = $"{segment}, ";
+
+                valuesBuilder.Append(segment);
+            }
+
+            var columns = columnsBuilder.ToString();
             columns = columns[..^2];
 
-            return columns;
+            var values = valuesBuilder.ToString();
+            values = values[..^2];
+
+            return (columns, values);
         }
 
         internal static string GetWhereCondition(T2 parameter)
@@ -210,7 +273,9 @@ namespace Core.Shared
 
             var builder = new StringBuilder();
 
-            foreach (var property in parameter.GetType().GetProperties())
+            var properties = parameter.GetType().GetFilteredProperties();
+
+            foreach (var property in properties)
             {
                 if (property.GetValue(parameter, null) != null)
                 {
@@ -318,6 +383,16 @@ namespace Core.Shared
             }
 
             return false;
+        }
+    }
+
+    internal static class TypeExtensions
+    {
+        internal static List<PropertyInfo> GetFilteredProperties(this Type t)
+        {
+            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_Ignore)))).ToList();
+
+            return properties;
         }
     }
 }

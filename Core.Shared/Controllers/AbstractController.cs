@@ -113,6 +113,8 @@ namespace Core.Shared.Controllers
 
                 var result = action();
 
+                _DB_Connection.Commit();
+
                 _DB_Connection?.Dispose();
 
                 return result;

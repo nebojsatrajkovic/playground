@@ -20,6 +20,15 @@ namespace Playground.Controllers
         {
             return ExecuteCommitAction(() =>
             {
+                var newEntry = new AUTH_Accounts.Model
+                {
+                    Email = "random@mail.com",
+                    IsDeleted = false,
+                    Password = "1234"
+                };
+
+                var result = AUTH_Accounts.DB.Save(DB_Connection, newEntry);
+
                 var debug = AUTH_Accounts.DB.Search(DB_Connection, new AUTH_Accounts.Query
                 {
 

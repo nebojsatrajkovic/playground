@@ -8,12 +8,16 @@ public class AUTH_Sessions
     public class Model
     {
         [CORE_DB_PrimaryKey]
-        public Guid AUTH_SessionID { get; set; }
+        public Guid AUTH_SessionID { get; set; } = Guid.NewGuid();
         public string SessionToken { get; set; } = null!;
         public DateTime ValidFrom { get; set; }
         public DateTime ValidTo { get; set; }
         public Guid Account_RefID { get; set; }
         public bool IsDeleted { get; set; }
+
+        [CORE_DB_Ignore]
+        [CORE_DB_AlreadySaved]
+        public bool IsAlreadySaved { get; set; }
     }
 
     public class Query
