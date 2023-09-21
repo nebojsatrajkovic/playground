@@ -1,5 +1,6 @@
 ﻿namespace Core.Shared.Attributes
 {
+    [AttributeUsage(AttributeTargets.Method)]
     public class CORE_AuthorizationAttribute : Attribute
     {
 

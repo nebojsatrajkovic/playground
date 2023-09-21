@@ -1,5 +1,10 @@
-﻿using Core.Shared.Configuration;
+﻿using Core.Shared.Attributes;
+using Core.Shared.Database;
+using Core.Shared.Utils.Extensions;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Primitives;
 using System.Data.SqlClient;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace Core.Shared
@@ -11,18 +16,19 @@ namespace Core.Shared
     /// <typeparam name="T2">Represents model for data querying</typeparam>
     public class ADBTable<T1, T2> where T1 : new() where T2 : new()
     {
-        // TODO - to be replaced with transactionManager -> reuse connection and transaction
-#warning must be replaced with transactionManager -> reuse connection and transaction
-        public static List<T1> Search(CORE_Database dbConfiguration, T2 parameter)
+        /// <summary>
+        /// Search all table entries that match values passed by parameter
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public static List<T1> Search(CORE_DB_Connection dbConnection, T2 parameter)
         {
             var result = new List<T1>();
 
-            string queryString = $"SELECT * FROM [dbo].[{typeof(T1).Name}] {GetWhereCondition(parameter)}";
+            var queryString = $"SELECT * FROM [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] {GetWhereCondition(parameter)}";
 
-            using SqlConnection connection = new(dbConfiguration.ConnectionString);
-            connection.Open();
-
-            var command = new SqlCommand(queryString, connection);
+            using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
             var reader = command.ExecuteReader();
 
@@ -42,44 +48,143 @@ namespace Core.Shared
             }
             finally
             {
-                // Always call Close when done reading.
                 reader.Close();
             }
 
             return result;
         }
 
-        public static int SoftDelete(T1 parameter)
+        #region soft delete
+
+        /// <summary>
+        /// Soft delete single entry
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public static int SoftDelete(CORE_DB_Connection dbConnection, T1 parameter)
         {
-            return SoftDelete(new List<T1> { parameter });
+            return SoftDelete(dbConnection, new List<T1> { parameter });
         }
 
-        public static int Delete(T1 parameter)
+        /// <summary>
+        /// Soft delete multiple entries
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public static int SoftDelete(CORE_DB_Connection dbConnection, List<T1> parameter)
         {
-            return Delete(new List<T1> { parameter });
+            int result = 0;
+
+            if (parameter.HasValue())
+            {
+                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_PrimaryKey)));
+
+                if (property != null)
+                {
+                    var ids = parameter.Select(x => property.GetValue(x, null)).ToList();
+
+                    if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
+                    {
+                        var queryString = $"UPDATE [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] SET [IsDeleted] = 1 WHERE {property.Name} IN ({parameterValues})";
+
+                        using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+
+                        result = command.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            return result;
         }
 
-        public static int SoftDelete(List<T1> parameter)
+        /// <summary>
+        /// Soft delete all entries that match values passed by parameter
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static int SoftDelete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            throw new NotImplementedException();
+            var queryString = $"UPDATE [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] SET [IsDeleted] = 1 {GetWhereCondition(parameter)}";
+
+            using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+
+            var result = command.ExecuteNonQuery();
+
+            return result;
         }
 
-        public static int Delete(List<T1> parameter)
+        #endregion soft delete
+
+        #region hard delete
+
+        /// <summary>
+        /// Hard delete single entry
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public static int Delete(CORE_DB_Connection dbConnection, T1 parameter)
         {
-            throw new NotImplementedException();
+            return Delete(dbConnection, new List<T1> { parameter });
         }
 
-        public static int SoftDelete(T2 parameter)
+        /// <summary>
+        /// Hard delete multiple entries
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static int Delete(CORE_DB_Connection dbConnection, List<T1> parameter)
         {
-            throw new NotImplementedException();
+            int result = 0;
+
+            if (parameter.HasValue())
+            {
+                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_PrimaryKey)));
+
+                if (property != null)
+                {
+                    var ids = parameter.Select(x => property.GetValue(x, null)).ToList();
+
+                    if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
+                    {
+                        var queryString = $"DELETE FROM [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] WHERE {property.Name} IN ({parameterValues})";
+
+                        using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+
+                        result = command.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            return result;
         }
 
-        public static int Delete(T2 parameter)
+        /// <summary>
+        /// Hard delete all entries that match values passed by parameter
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public static int Delete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            throw new NotImplementedException();
+            var queryString = $"DELETE FROM [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] {GetWhereCondition(parameter)}";
+
+            using var command = new SqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+
+            var result = command.ExecuteNonQuery();
+
+            return result;
         }
 
-        public static T1 Save(T1 parameter)
+        #endregion hard delete
+
+        public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
             throw new NotImplementedException();
         }
@@ -135,10 +240,10 @@ namespace Core.Shared
                     }
                     else if
                         (
-                        property.PropertyType == typeof(double) ||
-                        property.PropertyType == typeof(float) ||
-                        property.PropertyType == typeof(decimal) ||
-                        property.PropertyType == typeof(int)
+                        property.PropertyType == typeof(double?) ||
+                        property.PropertyType == typeof(float?) ||
+                        property.PropertyType == typeof(decimal?) ||
+                        property.PropertyType == typeof(int?)
                         )
                     {
                         segment = $"{property.Name} = {property.GetValue(parameter, null)}";
@@ -163,6 +268,56 @@ namespace Core.Shared
             }
 
             return where;
+        }
+
+        internal static bool GetParameterValues(List<object?> values, out string? parameterValues)
+        {
+            var builder = new StringBuilder();
+
+            if (values.HasValue())
+            {
+                foreach (var value in values)
+                {
+                    if (value == null) { continue; }
+
+                    var valueType = value.GetType();
+
+                    string segment;
+
+                    if
+                        (
+                        valueType == typeof(double) ||
+                        valueType == typeof(float) ||
+                        valueType == typeof(decimal) ||
+                        valueType == typeof(int)
+                        )
+                    {
+                        segment = $"{value}";
+                    }
+                    else
+                    {
+                        segment = $"'{value}'";
+                    }
+
+                    segment = $"{segment}, ";
+
+                    builder.Append(segment);
+                }
+            }
+
+            if (builder.Length > 0)
+            {
+                parameterValues = builder.ToString();
+                parameterValues = parameterValues[..^2];
+
+                return true;
+            }
+            else
+            {
+                parameterValues = null;
+            }
+
+            return false;
         }
     }
 }

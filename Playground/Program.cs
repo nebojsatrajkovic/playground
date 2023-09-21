@@ -1,4 +1,3 @@
-using Core.DB.Database;
 using Core.DB.Initializers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling;
@@ -46,12 +45,6 @@ var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .Build();
-
-#warning remove this
-var test = AUTH_Accounts.DB.Search(new CORE_Database { ConnectionString = "Server=ALEXIOS\\SQLEXPRESS;Database=Playground;Trusted_Connection=True;" }, new AUTH_Accounts.Query
-{
-    AUTH_AccountID = Guid.Parse("7cc0e7d6-8e39-4521-bd6a-d1d00d82b73d")
-});
 
 if (true || app.Environment.IsDevelopment())
 {

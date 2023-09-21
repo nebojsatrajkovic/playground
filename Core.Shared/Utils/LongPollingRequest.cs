@@ -2,10 +2,10 @@
 {
     public class LongPollingRequest
     {
-        int _timeout;
+        readonly int _timeout;
 
-        static List<LongPollingRequest> _requests = new List<LongPollingRequest>();
-        TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
+        static readonly List<LongPollingRequest> _requests = new();
+        readonly TaskCompletionSource<bool> _taskCompletionSource = new();
 
         string _Channel { get; set; }
         string _Key { get; set; }
