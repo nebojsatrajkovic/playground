@@ -1,8 +1,6 @@
 ﻿using Core.Shared.Attributes;
 using Core.Shared.Database;
 using Core.Shared.Utils.Extensions;
-using Microsoft.AspNetCore.Components.Forms;
-using System;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;

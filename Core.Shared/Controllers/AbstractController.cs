@@ -73,6 +73,8 @@ namespace Core.Shared.Controllers
 
                 action();
 
+                _DB_Connection.Commit();
+
                 _DB_Connection?.Dispose();
             }
             catch (Exception ex)
