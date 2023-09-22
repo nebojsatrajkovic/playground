@@ -32,6 +32,8 @@ namespace Core.Shared
 
             try
             {
+                var property_AlreadySaved = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_AlreadySaved)));
+
                 while (reader.Read())
                 {
                     var item = new T1();
@@ -42,6 +44,8 @@ namespace Core.Shared
                     {
                         property.SetValue(item, reader[property.Name]);
                     }
+
+                    property_AlreadySaved?.SetValue(parameter, true);
 
                     result.Add(item);
                 }
