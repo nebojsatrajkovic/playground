@@ -1,2 +1,0 @@
-﻿[TODO]
-- Implement code-first generator -> generate mssql script with create/alter statements

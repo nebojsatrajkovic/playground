@@ -47,7 +47,7 @@ namespace CORE_VS_PLUGIN
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            await CORE_VS_PLUGIN.Commands.CMD_Generate_ORM.InitializeAsync(this);
+            await CORE_VS_PLUGIN.Commands.CMD_Generate_MSSQL_ORM.InitializeAsync(this);
         }
 
         #endregion

@@ -12,18 +12,20 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 {
     public static class CORE_MSSQL_DB_Generator
     {
-        public static void GenerateORMs_FromMSSQL()
+        public static bool GenerateORMs_FromMSSQL(string configurationFilePath, string templateFilePath)
         {
+            var isSuccess = false;
+
             #region load configuration
 
-            var configurationJson = File.ReadAllText("C:\\CORE_VS_PLUGIN\\MSSQL\\configuration.json");
+            var configurationJson = File.ReadAllText(configurationFilePath);
 
             var configuration = JsonConvert.DeserializeObject<CORE_DB_GENERATOR_Configuration>(configurationJson);
 
             try { Directory.Delete(configuration.ORM_Location, true); } catch (Exception) { }
             try { Directory.CreateDirectory(configuration.ORM_Location); } catch (Exception) { }
 
-            var template = File.ReadAllText("C:\\CORE_VS_PLUGIN\\MSSQL\\Templates\\DB_ORM_TEMPLATE.txt");
+            var template = File.ReadAllText(templateFilePath);
 
             #endregion load configuration
 
@@ -58,7 +60,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                             }
                         }
 
-                        if (tableNames == null || !tableNames.Any()) { Console.WriteLine("No tables were found to generate ORMs"); return; }
+                        if (tableNames == null || !tableNames.Any()) { Console.WriteLine("No tables were found to generate ORMs"); return false; }
 
                         #endregion load table names
 
@@ -100,7 +102,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                             tables.Add(table);
                         }
 
-                        if (tables == null || !tables.Any()) { Console.WriteLine("No table data was found to generate ORMs"); return; }
+                        if (tables == null || !tables.Any()) { Console.WriteLine("No table data was found to generate ORMs"); return false; }
 
                         #endregion load tables data
 
@@ -155,6 +157,8 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                         #endregion generate orm using template
 
                         Console.WriteLine($"{nameof(CORE_MSSQL_DB_Generator)}: Successfully generated classes!");
+
+                        isSuccess = true;
                     }
                     catch (Exception ex)
                     {
@@ -169,6 +173,8 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                     }
                 }
             }
+
+            return isSuccess;
         }
 
         internal static bool IsValueType(int ODBC_Code)

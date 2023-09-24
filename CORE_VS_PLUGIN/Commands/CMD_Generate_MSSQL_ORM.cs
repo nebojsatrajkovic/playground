@@ -1,6 +1,5 @@
 ﻿using CORE_VS_PLUGIN.MSSQL_GENERATOR;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
 using System.Threading.Tasks;
@@ -10,7 +9,7 @@ namespace CORE_VS_PLUGIN.Commands
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class CMD_Generate_ORM
+    internal sealed class CMD_Generate_MSSQL_ORM
     {
         /// <summary>
         /// Command ID.
@@ -28,12 +27,12 @@ namespace CORE_VS_PLUGIN.Commands
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CMD_Generate_ORM"/> class.
+        /// Initializes a new instance of the <see cref="CMD_Generate_MSSQL_ORM"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private CMD_Generate_ORM(AsyncPackage package, OleMenuCommandService commandService)
+        private CMD_Generate_MSSQL_ORM(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -46,7 +45,7 @@ namespace CORE_VS_PLUGIN.Commands
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static CMD_Generate_ORM Instance
+        public static CMD_Generate_MSSQL_ORM Instance
         {
             get;
             private set;
@@ -69,12 +68,12 @@ namespace CORE_VS_PLUGIN.Commands
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in CMD_Generate_ORM's constructor requires
+            // Switch to the main thread - the call to AddCommand in CMD_Generate_MSSQL_ORM's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new CMD_Generate_ORM(package, commandService);
+            Instance = new CMD_Generate_MSSQL_ORM(package, commandService);
         }
 
         /// <summary>
@@ -88,28 +87,8 @@ namespace CORE_VS_PLUGIN.Commands
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            try
-            {
-                CORE_MSSQL_DB_Generator.GenerateORMs_FromMSSQL();
-
-                VsShellUtilities.ShowMessageBox(
-                    this.package,
-                    "Finished generating classes. Please check console output for details.",
-                    "Generate ORM",
-                    OLEMSGICON.OLEMSGICON_INFO,
-                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-            }
-            catch (Exception ex)
-            {
-                VsShellUtilities.ShowMessageBox(
-                    this.package,
-                    "Failed to generate classes!",
-                    "Generate ORM",
-                    OLEMSGICON.OLEMSGICON_WARNING,
-                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-            }
+            var window = new ORM_GENERATOR_WINDOW();
+            window.Show();
         }
     }
 }
