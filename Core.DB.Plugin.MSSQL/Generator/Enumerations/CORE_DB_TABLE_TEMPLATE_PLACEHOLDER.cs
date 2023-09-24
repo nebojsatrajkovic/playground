@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Core.Shared.Database.Generator.Enumerations
+namespace Core.DB.Plugin.MSSQL.Generator.Enumerations
 {
     public enum CORE_DB_TABLE_TEMPLATE_PLACEHOLDER
     {

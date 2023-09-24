@@ -1,4 +1,4 @@
-﻿namespace Core.Shared.Configuration
+﻿namespace CoreCore.DB.Plugin.MSSQL.Configuration
 {
     public interface ICORE_DB_GENERATOR_Configuration
     {

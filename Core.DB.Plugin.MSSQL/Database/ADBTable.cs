@@ -1,11 +1,10 @@
-﻿using Core.Shared.Attributes;
-using Core.Shared.Database;
-using Core.Shared.Utils.Extensions;
+﻿using Core.DB.Plugin.MSSQL.Attributes;
+using Core.DB.Plugin.MSSQL.Utils.Extensions;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
 
-namespace Core.Shared
+namespace Core.DB.Plugin.MSSQL.Database
 {
     /// <summary>
     /// Abstract class that contains all the logic for database table ORM manipulation
@@ -32,7 +31,7 @@ namespace Core.Shared
 
             try
             {
-                var property_AlreadySaved = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_AlreadySaved)));
+                var property_AlreadySaved = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_MSSQL_AlreadySaved)));
 
                 while (reader.Read())
                 {
@@ -83,7 +82,7 @@ namespace Core.Shared
 
             if (parameter.HasValue())
             {
-                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_PrimaryKey)));
+                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_MSSQL_PrimaryKey)));
 
                 if (property != null)
                 {
@@ -149,7 +148,7 @@ namespace Core.Shared
 
             if (parameter.HasValue())
             {
-                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_PrimaryKey)));
+                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_MSSQL_PrimaryKey)));
 
                 if (property != null)
                 {
@@ -198,7 +197,7 @@ namespace Core.Shared
 
             if (command.ExecuteNonQuery() > 0)
             {
-                var property = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_AlreadySaved)));
+                var property = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_MSSQL_AlreadySaved)));
 
                 property?.SetValue(parameter, true);
             }
@@ -389,7 +388,7 @@ namespace Core.Shared
     {
         internal static List<PropertyInfo> GetFilteredProperties(this Type t)
         {
-            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_Ignore)))).ToList();
+            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_MSSQL_Ignore)))).ToList();
 
             return properties;
         }

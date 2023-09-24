@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 
-namespace Core.Shared.Database
+namespace Core.DB.Plugin.MSSQL.Database
 {
     public class CORE_DB_Connection : IDisposable
     {

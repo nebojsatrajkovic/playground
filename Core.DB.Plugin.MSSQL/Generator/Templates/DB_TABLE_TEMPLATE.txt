@@ -1,5 +1,5 @@
-﻿using Core.Shared;
-using Core.Shared.Attributes;
+﻿using Core.DB.Plugin.MSSQL.Attributes;
+using Core.DB.Plugin.MSSQL.Database;
 
 namespace ${NAMESPACE};
 
@@ -7,10 +7,10 @@ public static class ${TABLE_NAME}
 {
     public class Model
     {
-        [CORE_DB_PrimaryKey]
+        [CORE_DB_MSSQL_PrimaryKey]
 ${MODEL_ATTRIBUTES}
-        [CORE_DB_Ignore]
-        [CORE_DB_AlreadySaved]
+        [CORE_DB_MSSQL_Ignore]
+        [CORE_DB_MSSQL_AlreadySaved]
         public bool IsAlreadySaved { get; set; }
     }
 

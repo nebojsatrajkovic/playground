@@ -1,23 +1,20 @@
-﻿using Core.Shared.Configuration;
-using Core.Shared.Database;
-using Core.Shared.ExceptionHandling.Exceptions;
-using Microsoft.AspNetCore.Http;
+﻿using Core.DB.Plugin.MSSQL.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Core.Shared.Controllers
+namespace Core.DB.Plugin.MSSQL.Controllers
 {
-    public class AbstractController : ControllerBase
+    public abstract class MSSQL_AbstractController : ControllerBase
     {
         readonly ILogger logger;
         string _sessionToken = null!;
         CORE_DB_Connection _DB_Connection = null!;
-        readonly ICORE_Configuration coreConfiguration = null!;
+        readonly string connectionString = null!;
 
-        protected AbstractController(ILogger logger, ICORE_Configuration coreConfiguration)
+        protected MSSQL_AbstractController(ILogger logger, string connectionString)
         {
             this.logger = logger;
-            this.coreConfiguration = coreConfiguration;
+            this.connectionString = connectionString;
         }
 
         public CORE_DB_Connection DB_Connection
@@ -48,27 +45,14 @@ namespace Core.Shared.Controllers
         {
             try
             {
-                using var dbConnection = new CORE_DB_Connection(coreConfiguration.Database.ConnectionString);
+                using var dbConnection = new CORE_DB_Connection(connectionString);
 
                 _DB_Connection = dbConnection;
+                _sessionToken = GetSessionToken();
 
                 if (authenticate)
                 {
-                    try
-                    {
-                        if (!_VerifySession(_DB_Connection))
-                        {
-                            throw new CORE_UnauthenticatedException("Unauthenticated request detected!");
-                        }
-
-                        _sessionToken = _GetSessionToken();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-
-                        throw;
-                    }
+                    Authenticate();
                 }
 
                 action();
@@ -88,29 +72,16 @@ namespace Core.Shared.Controllers
 
         private T _ExecuteCommitAction<T>(Func<T> action, bool authenticate)
         {
-            using var dbConnection = new CORE_DB_Connection(coreConfiguration.Database.ConnectionString);
+            using var dbConnection = new CORE_DB_Connection(connectionString);
 
             _DB_Connection = dbConnection;
+            _sessionToken = GetSessionToken();
 
             try
             {
                 if (authenticate)
                 {
-                    try
-                    {
-                        if (!_VerifySession(_DB_Connection))
-                        {
-                            throw new CORE_UnauthenticatedException("Unauthenticated request detected!");
-                        }
-
-                        _sessionToken = _GetSessionToken();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-
-                        throw;
-                    }
+                    Authenticate();
                 }
 
                 var result = action();
@@ -190,51 +161,8 @@ namespace Core.Shared.Controllers
 
         #endregion commit with no auth
 
-        internal bool _VerifySession(CORE_DB_Connection dbConnection)
-        {
-            var isAuthenticated = false;
+        protected abstract string GetSessionToken();
 
-            try
-            {
-                var sessionToken = _GetSessionToken();
-
-                if (!string.IsNullOrEmpty(sessionToken))
-                {
-
-                }
-
-                // TODO implement
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return isAuthenticated;
-        }
-
-        internal string _GetSessionToken()
-        {
-            var sessionToken = string.Empty;
-
-            try
-            {
-                HttpContext.Request.Cookies.TryGetValue(CORE_Configuration.AuthKey, out sessionToken);
-
-                if (string.IsNullOrEmpty(sessionToken))
-                {
-                    HttpContext.Request.Headers.TryGetValue(CORE_Configuration.AuthKey, out var sessionTokenValue);
-
-                    sessionToken = sessionTokenValue;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return sessionToken ?? string.Empty;
-        }
+        protected abstract void Authenticate();
     }
 }

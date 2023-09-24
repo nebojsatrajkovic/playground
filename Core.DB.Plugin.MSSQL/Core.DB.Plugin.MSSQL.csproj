@@ -12,7 +12,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<None Remove="Generator\Templates\DB_TABLE_TEMPLATE.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Generator\Templates\DB_TABLE_TEMPLATE.txt">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
 	</ItemGroup>
 
 </Project>

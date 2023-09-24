@@ -1,12 +1,13 @@
-﻿using Core.Shared.Configuration;
-using Core.Shared.Database.Generator.Enumerations;
-using Core.Shared.Utils.Extensions;
+﻿using Core.DB.Plugin.MSSQL.Database;
+using Core.DB.Plugin.MSSQL.Generator.Enumerations;
+using Core.DB.Plugin.MSSQL.Utils.Extensions;
+using CoreCore.DB.Plugin.MSSQL.Configuration;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
 
-namespace Core.Shared.Database.Generator
+namespace Core.DB.Plugin.MSSQL.Generator
 {
     public static class CORE_MSSQL_DB_Generator
     {
@@ -34,7 +35,7 @@ namespace Core.Shared.Database.Generator
 
             reader_GetTable.Close();
 
-            if (!tableNames.HasValue()) { Console.WriteLine("No tables were found to generate ORMs"); return; }
+            if (tableNames == null || !tableNames.Any()) { Console.WriteLine("No tables were found to generate ORMs"); return; }
 
             #endregion load table names
 
@@ -69,25 +70,25 @@ namespace Core.Shared.Database.Generator
 
                 reader_GetTableData.Close();
 
-                if (!table.Columns.HasValue()) { continue; }
+                if (table.Columns == null || !table.Columns.Any()) { continue; }
 
                 tables.Add(table);
             }
 
-            if (!tables.HasValue()) { Console.WriteLine("No table data was found to generate ORMs"); return; }
+            if (tables == null || !tables.Any()) { Console.WriteLine("No table data was found to generate ORMs"); return; }
 
             #endregion load tables data
 
             #region generate orm using template
 
-            var template = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly()?.Location) ?? string.Empty, "Database\\Generator\\Templates\\DB_TABLE_TEMPLATE.txt"));
+            var template = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly()?.Location) ?? string.Empty, "Generator\\Templates\\DB_TABLE_TEMPLATE.txt"));
 
             try { Directory.Delete(configuration.ORM_Location, true); } catch (Exception) { }
             try { Directory.CreateDirectory(configuration.ORM_Location); } catch (Exception) { }
 
             foreach (var table in tables)
             {
-                if (table.Columns.HasValue())
+                if (table.Columns != null && table.Columns.Any())
                 {
                     var modelBuilder = new StringBuilder();
                     var queryBuilder = new StringBuilder();
