@@ -1,1 +1,0 @@
-﻿Scaffold-DbContext "Server=localhost\SQLEXPRESS;Database=Playground;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Database -NoPluralize -UseDatabaseNames
