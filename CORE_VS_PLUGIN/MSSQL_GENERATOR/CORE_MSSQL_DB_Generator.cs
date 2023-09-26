@@ -12,7 +12,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 {
     public static class CORE_MSSQL_DB_Generator
     {
-        public static bool GenerateORMs_FromMSSQL(string configurationFilePath, string templateFilePath)
+        public static bool GenerateORMs_FromMSSQL(string configurationFilePath)
         {
             var isSuccess = false;
 
@@ -25,7 +25,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
             try { Directory.Delete(configuration.ORM_Location, true); } catch (Exception) { }
             try { Directory.CreateDirectory(configuration.ORM_Location); } catch (Exception) { }
 
-            var template = File.ReadAllText(templateFilePath);
+            var template = File.ReadAllText("MSSQL_GENERATOR\\Templates\\DB_ORM_TEMPLATE.txt");
 
             #endregion load configuration
 

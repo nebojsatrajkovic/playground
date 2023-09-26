@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using System.Windows;
 
 namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
@@ -9,6 +10,10 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
         public ORM_GENERATOR_WINDOW()
         {
             InitializeComponent();
+
+            var configurationPreviewObject = new CORE_DB_GENERATOR_Configuration { ConnectionString = string.Empty, ORM_Location = string.Empty, ORM_Namespace = string.Empty };
+
+            lblConfigurationObjectPreview.Content = JsonConvert.SerializeObject(configurationPreviewObject, Formatting.Indented);
         }
 
         private void btnChooseConfigurationFile_Click(object sender, RoutedEventArgs e)
@@ -18,13 +23,6 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                 txtConfigurationFile.Text = openFileDialog.FileName;
         }
 
-        private void btnChooseORMTemplate_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
-                txtORMLocation.Text = openFileDialog.FileName;
-        }
-
         private void btExit_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -32,7 +30,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 
         private void btExecute_Click(object sender, RoutedEventArgs e)
         {
-            var isSuccess = CORE_MSSQL_DB_Generator.GenerateORMs_FromMSSQL(txtConfigurationFile.Text, txtORMLocation.Text);
+            var isSuccess = CORE_MSSQL_DB_Generator.GenerateORMs_FromMSSQL(txtConfigurationFile.Text);
 
             var messageBoxText = isSuccess ? "Successfully generated ORM classes!" : "Failed to generate ORM classes!";
             var caption = "Operation result";

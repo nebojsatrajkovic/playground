@@ -95,6 +95,9 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="MSSQL_GENERATOR\Notes.txt" />
+    <Content Include="MSSQL_GENERATOR\Templates\DB_ORM_TEMPLATE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Include="MSSQL_GENERATOR\ToolWindows\ORM_GENERATOR_WINDOW.xaml">
