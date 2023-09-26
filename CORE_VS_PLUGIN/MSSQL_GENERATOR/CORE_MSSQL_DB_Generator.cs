@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
@@ -25,7 +26,15 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
             try { Directory.Delete(configuration.ORM_Location, true); } catch (Exception) { }
             try { Directory.CreateDirectory(configuration.ORM_Location); } catch (Exception) { }
 
-            var template = File.ReadAllText("MSSQL_GENERATOR\\Templates\\DB_ORM_TEMPLATE.txt");
+            string template;
+
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.MSSQL_GENERATOR.Templates.DB_ORM_TEMPLATE.txt"))
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    template = reader.ReadToEnd();
+                }
+            }
 
             #endregion load configuration
 
