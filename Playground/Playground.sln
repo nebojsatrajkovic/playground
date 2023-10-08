@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Shared", "..\Core.Shar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.DB", "..\Core.DB\Core.DB.csproj", "{098B6882-4A05-4019-8388-06C5DA6C8669}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.DB.Plugin.MSSQL", "..\Core.DB.Plugin.MSSQL\Core.DB.Plugin.MSSQL.csproj", "{3B92EF4D-5A39-4B10-B573-BA5CCC462942}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.DB.Plugin.MSSQL", "..\Core.DB.Plugin.MSSQL\Core.DB.Plugin.MSSQL.csproj", "{3B92EF4D-5A39-4B10-B573-BA5CCC462942}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.DB.Plugin.MySQL", "..\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj", "{538DA30F-0C94-4185-9F00-CEDD1B57C13D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{3B92EF4D-5A39-4B10-B573-BA5CCC462942}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B92EF4D-5A39-4B10-B573-BA5CCC462942}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B92EF4D-5A39-4B10-B573-BA5CCC462942}.Release|Any CPU.Build.0 = Release|Any CPU
+		{538DA30F-0C94-4185-9F00-CEDD1B57C13D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{538DA30F-0C94-4185-9F00-CEDD1B57C13D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{538DA30F-0C94-4185-9F00-CEDD1B57C13D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{538DA30F-0C94-4185-9F00-CEDD1B57C13D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

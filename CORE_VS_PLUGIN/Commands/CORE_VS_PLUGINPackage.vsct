@@ -15,10 +15,10 @@
         defining some of the constants that we will use inside the file. -->
 
 	<!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
-	<Extern href="stdidcmd.h"/>
+	<Extern href="stdidcmd.h" />
 
 	<!--This header contains the command ids for the menus provided by the shell. -->
-	<Extern href="vsshlids.h"/>
+	<Extern href="vsshlids.h" />
 
 	<!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
@@ -37,7 +37,7 @@
          must be a menu. -->
 		<Groups>
 			<Group guid="guidCORE_VS_PLUGINPackageCmdSet" id="MyMenuGroup" priority="0x0600">
-				<Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
 			</Group>
 		</Groups>
 
@@ -59,11 +59,20 @@
 					<ButtonText>[DB] Generate MSSQL ORM</ButtonText>
 				</Strings>
 			</Button>
+			
+			<Button guid="guidCORE_VS_PLUGINPackageCmdSet" id="cmdidCMD_Generate_MySQL_ORM" priority="0x0100" type="Button">
+				<Parent guid="guidCORE_VS_PLUGINPackageCmdSet" id="MyMenuGroup" />
+				<Icon guid="CMD_Generate_MySQL_ORM_icon" id="CMD_Generate_MySQL_ORM_icon1" />
+				<Strings>
+					<ButtonText>[DB] Generate MySQL ORM</ButtonText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 		<!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
 		<Bitmaps>
-			<Bitmap guid="CMD_Generate_MSSQL_ORM_icon" href="Resources\CMD_Generate_MSSQL_ORM_icon.png" usedList="CMD_Generate_MSSQL_ORM_icon1"/>
+			<Bitmap guid="CMD_Generate_MSSQL_ORM_icon" href="Resources\CMD_Generate_MSSQL_ORM_icon.png" usedList="CMD_Generate_MSSQL_ORM_icon1" />
+			<Bitmap guid="CMD_Generate_MySQL_ORM_icon" href="Resources\CMD_Generate_MySQL_ORM_icon.png" usedList="CMD_Generate_MySQL_ORM_icon1" />
 		</Bitmaps>
 	</Commands>
 
@@ -75,16 +84,17 @@
 		<GuidSymbol name="guidCORE_VS_PLUGINPackageCmdSet" value="{9886100a-09da-4e03-bf91-0b4105250694}">
 			<IDSymbol name="MyMenuGroup" value="0x1020" />
 			<IDSymbol name="CMD_Generate_MSSQL_ORMId" value="0x0100" />
+			<IDSymbol value="4129" name="cmdidCMD_Generate_MySQL_ORM" />
 		</GuidSymbol>
 
 		<GuidSymbol name="CMD_Generate_MSSQL_ORM_icon" value="{A0B51B3C-BE84-4738-B0E6-E760DA775715}" />
-
 		<GuidSymbol name="CMD_Generate_MSSQL_ORM_icon" value="{A0B51B3C-BE84-4738-B0E6-E760DA775715}">
 			<IDSymbol name="CMD_Generate_MSSQL_ORM_icon1" value="1" />
 		</GuidSymbol>
 
-
-
-
+		<GuidSymbol name="CMD_Generate_MySQL_ORM_icon" value="{a9ecd490-ef15-4fb4-b2a0-1835e31c510d}" />
+		<GuidSymbol name="CMD_Generate_MySQL_ORM_icon" value="{a9ecd490-ef15-4fb4-b2a0-1835e31c510d}">
+			<IDSymbol name="CMD_Generate_MySQL_ORM_icon1" value="1" />
+		</GuidSymbol>
 	</Symbols>
 </CommandTable>

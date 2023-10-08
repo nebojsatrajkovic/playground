@@ -28,7 +28,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 
             string template;
 
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.MSSQL_GENERATOR.Templates.DB_ORM_TEMPLATE.txt"))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.DB_ORM_TEMPLATE.txt"))
             {
                 using (var reader = new StreamReader(stream))
                 {
@@ -186,6 +186,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
             return isSuccess;
         }
 
+        // TODO check IsValueType based on C# type
         internal static bool IsValueType(int ODBC_Code)
         {
             return
@@ -271,6 +272,8 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
         public int DataType { get; set; }
         public int OrdinalPosition { get; set; }
         public bool IsNullable { get; set; }
+
+        public bool Is_MySQL_PrimaryKey { get; set; }
     }
 
     internal enum ODBC_DATA_TYPE
