@@ -49,7 +49,7 @@
     <Compile Include="Commands\CMD_Generate_MSSQL_ORM.cs" />
     <Compile Include="Commands\CMD_Generate_MySQL_ORM.cs" />
     <Compile Include="GENERATOR\CORE_MySQL_DB_Generator.cs" />
-    <Compile Include="GENERATOR_PLUGIN.cs" />
+    <Compile Include="GENERATOR\Enumerations\GENERATOR_PLUGIN.cs" />
     <Compile Include="GENERATOR\CORE_DB_GENERATOR_Configuration.cs" />
     <Compile Include="GENERATOR\CORE_MSSQL_DB_Generator.cs" />
     <Compile Include="GENERATOR\Enumerations\CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.cs" />
@@ -114,9 +114,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MySQL GENERATOR\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

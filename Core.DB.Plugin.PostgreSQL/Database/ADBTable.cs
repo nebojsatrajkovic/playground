@@ -1,10 +1,10 @@
 ﻿using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Extensions;
-using MySql.Data.MySqlClient;
+using Npgsql;
 using System.Reflection;
 using System.Text;
 
-namespace Core.DB.Plugin.MySQL.Database
+namespace Core.DB.Plugin.PostgreSQL.Database
 {
     /// <summary>
     /// Abstract class that contains all the logic for database table ORM manipulation
@@ -25,7 +25,7 @@ namespace Core.DB.Plugin.MySQL.Database
 
             var queryString = $"SELECT * FROM {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} {GetWhereCondition(parameter)}";
 
-            using var command = new MySqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+            using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
             using var reader = command.ExecuteReader();
 
@@ -92,7 +92,7 @@ namespace Core.DB.Plugin.MySQL.Database
                     {
                         var queryString = $"UPDATE {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} SET IsDeleted = 1 WHERE {property.Name} IN ({parameterValues})";
 
-                        using var command = new MySqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+                        using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
                         result = command.ExecuteNonQuery();
                     }
@@ -113,7 +113,7 @@ namespace Core.DB.Plugin.MySQL.Database
         {
             var queryString = $"UPDATE {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} SET IsDeleted = 1 {GetWhereCondition(parameter)}";
 
-            using var command = new MySqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+            using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
 
@@ -158,7 +158,7 @@ namespace Core.DB.Plugin.MySQL.Database
                     {
                         var queryString = $"DELETE FROM {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} WHERE {property.Name} IN ({parameterValues})";
 
-                        using var command = new MySqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+                        using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
                         result = command.ExecuteNonQuery();
                     }
@@ -178,7 +178,7 @@ namespace Core.DB.Plugin.MySQL.Database
         {
             var queryString = $"DELETE FROM {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} {GetWhereCondition(parameter)}";
 
-            using var command = new MySqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+            using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
 
@@ -193,7 +193,7 @@ namespace Core.DB.Plugin.MySQL.Database
 
             var queryString = $"INSERT INTO {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} ({columns}) VALUES ({values})";
 
-            using var command = new MySqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
+            using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
             if (command.ExecuteNonQuery() > 0)
             {

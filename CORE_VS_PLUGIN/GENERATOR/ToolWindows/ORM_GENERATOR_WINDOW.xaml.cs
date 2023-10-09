@@ -1,4 +1,5 @@
 ﻿using CORE_VS_PLUGIN.GENERATOR;
+using CORE_VS_PLUGIN.GENERATOR.Enumerations;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.Win32;
 using Newtonsoft.Json;

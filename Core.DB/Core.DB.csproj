@@ -7,11 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.DB.Plugin.MSSQL\Core.DB.Plugin.MSSQL.csproj" />
+    <Compile Remove="Database\**" />
+    <EmbeddedResource Remove="Database\**" />
+    <None Remove="Database\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Database\" />
+    <ProjectReference Include="..\Core.DB.Plugin.MSSQL\Core.DB.Plugin.MSSQL.csproj" />
   </ItemGroup>
 
 </Project>

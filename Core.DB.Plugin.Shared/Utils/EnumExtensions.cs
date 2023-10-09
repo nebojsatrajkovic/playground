@@ -1,15 +1,15 @@
 ﻿using System.ComponentModel;
 
-namespace Core.DB.Plugin.MSSQL.Utils.Extensions
+namespace Core.DB.Plugin.Shared.Extensions
 {
-    internal static class EnumExtensions
+    public static class EnumExtensions
     {
-        internal static string Description(this Enum value)
+        public static string Description(this Enum value)
         {
             return _GetEnumDescription(value);
         }
 
-        internal static int IntegerDescription(this Enum value)
+        public static int IntegerDescription(this Enum value)
         {
             return int.Parse(_GetEnumDescription(value));
         }

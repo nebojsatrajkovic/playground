@@ -1,4 +1,5 @@
-﻿using CORE_VS_PLUGIN.MSSQL_GENERATOR;
+﻿using CORE_VS_PLUGIN.GENERATOR.Enumerations;
+using CORE_VS_PLUGIN.MSSQL_GENERATOR;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
