@@ -1,4 +1,4 @@
-﻿using Core.DB.Plugin.MSSQL.Controllers;
+﻿using Core.DB.Plugin.PostgreSQL.Controllers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ namespace Playground.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AbstractController : MSSQL_AbstractController
+    public class AbstractController : PostgreSQL_AbstractController
     {
         protected AbstractController(ILogger logger, ICORE_Configuration coreConfiguration) : base(logger, coreConfiguration.Database.ConnectionString)
         {

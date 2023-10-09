@@ -1,21 +1,21 @@
 ﻿using CORE_VS_PLUGIN.GENERATOR.Enumerations;
 using CORE_VS_PLUGIN.GENERATOR.Model;
+using CORE_VS_PLUGIN.MSSQL_GENERATOR;
 using CORE_VS_PLUGIN.MSSQL_GENERATOR.Enumerations;
 using Newtonsoft.Json;
+using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
+namespace CORE_VS_PLUGIN.GENERATOR
 {
-    public static class CORE_MSSQL_DB_Generator
+    public static class CORE_PostgreSQL_DB_Generator
     {
-        public static bool GenerateORMs_FromMSSQL(string configurationFilePath)
+        public static bool GenerateORMs_From_PostgreSQL(string configurationFilePath)
         {
             var isSuccess = false;
 
@@ -23,7 +23,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 
             var configurationJson = File.ReadAllText(configurationFilePath);
 
-            var configuration = JsonConvert.DeserializeObject<CORE_DB_GENERATOR_Configuration>(configurationJson);
+            var configuration = JsonConvert.DeserializeObject<CORE_DB_GENERATOR_PostgreSQL_Configuration>(configurationJson);
 
             try { Directory.Delete(configuration.ORM_Location, true); } catch (Exception) { }
             try { Directory.CreateDirectory(configuration.ORM_Location); } catch (Exception) { }
@@ -40,7 +40,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 
             #endregion load configuration
 
-            using (var connection = new SqlConnection(configuration.ConnectionString))
+            using (var connection = new NpgsqlConnection(configuration.ConnectionString))
             {
                 connection.Open();
 
@@ -50,16 +50,16 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                     {
                         #region load table names
 
-                        var query_GetTables = "SELECT * FROM SYSOBJECTS WHERE xtype = 'U';";
+                        var query_GetTables = $"SELECT * FROM information_schema.tables where table_schema = '{configuration.PostgreSQL_Schema}';";
                         var tableNames = new List<string>();
 
-                        using (var command_GetTables = new SqlCommand(query_GetTables, connection, transaction))
+                        using (var command_GetTables = new NpgsqlCommand(query_GetTables, connection, transaction))
                         {
                             using (var reader_GetTable = command_GetTables.ExecuteReader())
                             {
                                 while (reader_GetTable.Read())
                                 {
-                                    var value = reader_GetTable.GetString(reader_GetTable.GetOrdinal("name"));
+                                    var value = reader_GetTable.GetString(reader_GetTable.GetOrdinal("table_name"));
 
                                     if (!string.IsNullOrEmpty(value))
                                     {
@@ -81,27 +81,27 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 
                         foreach (var tableName in tableNames)
                         {
-                            var query_GetTableData = $"exec sp_columns {tableName}";
+                            var query_GetTableData = $"SELECT * FROM information_schema.columns WHERE table_schema = '{configuration.PostgreSQL_Schema}' AND table_name = '{tableName}'";
 
                             var table = new CORE_DB_TABLE
                             {
                                 Name = tableName
                             };
 
-                            using (var command_GetTableData = new SqlCommand(query_GetTableData, connection, transaction))
+                            using (var command_GetTableData = new NpgsqlCommand(query_GetTableData, connection, transaction))
                             {
                                 using (var reader_GetTableData = command_GetTableData.ExecuteReader())
                                 {
                                     while (reader_GetTableData.Read())
                                     {
-                                        var ordinalPosition = reader_GetTableData.GetInt32(reader_GetTableData.GetOrdinal("ORDINAL_POSITION"));
+                                        var ordinalPosition = reader_GetTableData.GetInt32(reader_GetTableData.GetOrdinal("ordinal_position"));
 
                                         table.Columns.Add(new CORE_DB_TABLE_COLUMN
                                         {
-                                            Name = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_NAME")),
-                                            TypeName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("TYPE_NAME")),
-                                            DataType = reader_GetTableData.GetInt16(reader_GetTableData.GetOrdinal("DATA_TYPE")),
-                                            IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("IS_NULLABLE")) != "NO",
+                                            Name = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("column_name")),
+                                            TypeName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("udt_name")),
+                                            DataType = 0,
+                                            IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("is_nullable")) != "NO",
                                             OrdinalPosition = ordinalPosition,
                                             IsPrimaryKey = ordinalPosition == 1
                                         });
@@ -129,9 +129,9 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                                 var modelBuilder = new StringBuilder();
                                 var queryBuilder = new StringBuilder();
 
-                                foreach (var column in table.Columns.OrderBy(x => x.OrdinalPosition).ToList())
+                                foreach (var column in table.Columns)
                                 {
-                                    var cSharpType = GetCSharpType(column.DataType);
+                                    var cSharpType = GetCSharpType(column.TypeName);
 
                                     if (column.IsNullable)
                                     {
@@ -139,10 +139,11 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                                     }
                                     else
                                     {
-                                        if (column.OrdinalPosition == 1 && (column.DataType == -2 || column.DataType == -11))
+                                        if (column.IsPrimaryKey && cSharpType == "Guid")
                                         {
                                             modelBuilder.AppendLine($"        public Guid {column.Name} {{ get; set; }} = Guid.NewGuid();");
                                         }
+
                                         else if (IsValueType(cSharpType))
                                         {
                                             modelBuilder.AppendLine($"        public {cSharpType} {column.Name} {{ get; set; }}");
@@ -161,7 +162,7 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                                    .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.TABLE_NAME.Description(), table.Name)
                                    .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.MODEL_ATTRIBUTES.Description(), modelBuilder.ToString())
                                    .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.QUERY_ATTRIBUTES.Description(), queryBuilder.ToString())
-                                   .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.DB_TYPE.Description(), GENERATOR_PLUGIN.MSSQL.Description());
+                                   .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.DB_TYPE.Description(), GENERATOR_PLUGIN.PostgreSQL.Description());
 
                                 File.WriteAllText($"{configuration.ORM_Location}\\{table.Name}.cs", tableTemplate);
                             }
@@ -169,13 +170,13 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
 
                         #endregion generate orm using template
 
-                        Console.WriteLine($"{nameof(CORE_MSSQL_DB_Generator)}: Successfully generated classes!");
+                        Console.WriteLine($"{nameof(CORE_PostgreSQL_DB_Generator)}: Successfully generated classes!");
 
                         isSuccess = true;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"{nameof(CORE_MSSQL_DB_Generator)}: Failed to generate classes!");
+                        Console.WriteLine($"{nameof(CORE_PostgreSQL_DB_Generator)}: Failed to generate classes!");
                         Console.WriteLine(ex.ToString());
                     }
                     finally
@@ -200,145 +201,42 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
                 cSharpType == "bool";
         }
 
-        internal static string GetCSharpType(int ODBC_Code)
+        private static string GetCSharpType(string typeName)
         {
-            if (ODBC_Code == ODBC_DATA_TYPE.Binary.IntegerDescription() ||
-                ODBC_Code == ODBC_DATA_TYPE.UniqueIdentifier.IntegerDescription())
+            switch (typeName)
             {
-                return "Guid";
+                case "uuid":
+                    return "Guid";
+                case "numeric":
+                case "money":
+                    return "decimal";
+                case "float8":
+                    return "double";
+                case "float4":
+                    return "float";
+                case "int2":
+                case "int4":
+                    return "int";
+                case "varchar":
+                case "text":
+                    return "string";
+                case "timestamp":
+                case "time":
+                case "timez":
+                case "date":
+                    return "DateTime";
+                case "bit":
+                case "bool":
+                    return "bool";
+                case "bytea":
+                    return "byte[]";
+                case "interval":
+                    return "TimeSpan";
+                case "inet":
+                    return "IPAddress";
+                default:
+                    return "object";
             }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Date.IntegerDescription() ||
-                ODBC_Code == ODBC_DATA_TYPE.Time.IntegerDescription() ||
-                ODBC_Code == ODBC_DATA_TYPE.Timestamp.IntegerDescription())
-            {
-                return "DateTime";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Decimal.IntegerDescription())
-            {
-                return "decimal";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Integer.IntegerDescription() ||
-                ODBC_Code == ODBC_DATA_TYPE.SmallInt.IntegerDescription() ||
-                ODBC_Code == ODBC_DATA_TYPE.Tinyint.IntegerDescription())
-            {
-                return "int";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Float.IntegerDescription())
-            {
-                return "float";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Double.IntegerDescription())
-            {
-                return "double";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.BigInt.IntegerDescription())
-            {
-                return "long";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Bit.IntegerDescription())
-            {
-                return "bool";
-            }
-            else if (ODBC_Code == ODBC_DATA_TYPE.Char.IntegerDescription()
-                || ODBC_Code == ODBC_DATA_TYPE.Varchar.IntegerDescription()
-                || ODBC_Code == ODBC_DATA_TYPE.WVarchar.IntegerDescription()
-                || ODBC_Code == ODBC_DATA_TYPE.WLongvarchar.IntegerDescription()
-                || ODBC_Code == ODBC_DATA_TYPE.WChar.IntegerDescription())
-            {
-                return "string";
-            }
-            else
-            {
-                return "object";
-            }
-        }
-    }
-
-    internal enum ODBC_DATA_TYPE
-    {
-        [Description("1")]
-        Char,
-
-        [Description("3")]
-        Decimal,
-
-        [Description("8")]
-        Double,
-
-        [Description("6")]
-        Float,
-
-        [Description("4")]
-        Integer,
-
-        [Description("2")]
-        Numeric,
-
-        [Description("7")]
-        Real,
-
-        [Description("5")]
-        SmallInt,
-
-        [Description("12")]
-        Varchar,
-
-        [Description("-8")]
-        WChar,
-
-        [Description("-9")]
-        WVarchar,
-
-        [Description("-10")]
-        WLongvarchar,
-
-
-
-        [Description("-5")]
-        BigInt,
-
-        [Description("-2")]
-        Binary,
-
-        [Description("-7")]
-        Bit,
-
-        [Description("9")]
-        Date,
-
-        [Description("10")]
-        Time,
-
-        [Description("11")]
-        Timestamp,
-
-        [Description("-6")]
-        Tinyint,
-
-        [Description("-11")]
-        UniqueIdentifier
-    }
-
-    internal static class EnumExtensions
-    {
-        internal static string Description(this Enum value)
-        {
-            return _GetEnumDescription(value);
-        }
-
-        internal static int IntegerDescription(this Enum value)
-        {
-            return int.Parse(_GetEnumDescription(value));
-        }
-
-        private static string _GetEnumDescription(Enum value)
-        {
-            if (value.GetType().GetField(value.ToString())?.GetCustomAttributes(typeof(DescriptionAttribute), inherit: false) is DescriptionAttribute[] array && array.Length != 0)
-            {
-                return array[0].Description;
-            }
-
-            return value?.ToString() ?? string.Empty;
         }
     }
 }

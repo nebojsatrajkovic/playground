@@ -1,2 +1,9 @@
 ﻿[TODO]
 - Implement code-first generator -> generate mssql script with create/alter statements
+
+[PostgreSQL]
+SELECT * FROM information_schema.tables where table_schema = 'public';
+CREATE USER postgresql_dev WITH PASSWORD 'postgresql_dev';
+GRANT USAGE ON SCHEMA public TO postgresql_dev;
+GRANT ALL PRIVILEGES ON DATABASE smdb TO postgresql_dev;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO postgresql_dev;

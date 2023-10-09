@@ -1,4 +1,5 @@
-﻿using Core.Shared.Configuration;
+﻿using Core.DB.Database.Tables;
+using Core.Shared.Configuration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Playground.Controllers
@@ -18,23 +19,21 @@ namespace Playground.Controllers
         {
             return ExecuteCommitAction(() =>
             {
-                //var newEntry = new AUTH_Accounts.Model
-                //{
-                //    Email = "random@mail.com",
-                //    IsDeleted = false,
-                //    Password = "1234"
-                //};
+                var newEntry = new USR_Accounts.Model
+                {
+                    Email = "random@mail.com",
+                    IsDeleted = false
+                };
 
-                //newEntry = AUTH_Accounts.DB.Save(DB_Connection, newEntry);
+                newEntry = USR_Accounts.DB.Save(DB_Connection, newEntry);
 
-                //var debug = AUTH_Accounts.DB.Search(DB_Connection, new AUTH_Accounts.Query
-                //{
-                //    IsDeleted = false
-                //});
+                var debug = USR_Accounts.DB.Search(DB_Connection, new USR_Accounts.Query
+                {
+                    IsDeleted = false,
+                    USR_AccountID = Guid.Parse("49bb56e5-9e38-4b09-9de0-178659ac305a")
+                });
 
-                //return debug;
-
-                return 0;
+                return debug;
             });
         }
 

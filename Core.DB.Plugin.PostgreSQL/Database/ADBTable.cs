@@ -23,7 +23,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         {
             var result = new List<T1>();
 
-            var queryString = $"SELECT * FROM {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} {GetWhereCondition(parameter)}";
+            var queryString = $"SELECT * FROM \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" {GetWhereCondition(parameter)}";
 
             using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
@@ -31,7 +31,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
             try
             {
-                var property_AlreadySaved = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_AlreadySaved)));
+                var property_AlreadySaved = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_AlreadySaved)));
 
                 while (reader.Read())
                 {
@@ -44,7 +44,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                         property.SetValue(item, reader[property.Name]);
                     }
 
-                    property_AlreadySaved?.SetValue(parameter, true);
+                    property_AlreadySaved?.SetValue(item, true);
 
                     result.Add(item);
                 }
@@ -90,7 +90,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
                     if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
                     {
-                        var queryString = $"UPDATE {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} SET IsDeleted = 1 WHERE {property.Name} IN ({parameterValues})";
+                        var queryString = $"UPDATE \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" SET IsDeleted = 1 WHERE \"{property.Name}\" IN ({parameterValues})";
 
                         using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
@@ -111,7 +111,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <exception cref="NotImplementedException"></exception>
         public static int SoftDelete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            var queryString = $"UPDATE {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} SET IsDeleted = 1 {GetWhereCondition(parameter)}";
+            var queryString = $"UPDATE \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" SET IsDeleted = 1 {GetWhereCondition(parameter)}";
 
             using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
@@ -156,7 +156,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
                     if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
                     {
-                        var queryString = $"DELETE FROM {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} WHERE {property.Name} IN ({parameterValues})";
+                        var queryString = $"DELETE FROM \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" WHERE \"{property.Name}\" IN ({parameterValues})";
 
                         using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
@@ -191,7 +191,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         {
             var (columns, values) = GetColumnsAndValues(parameter);
 
-            var queryString = $"INSERT INTO {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} ({columns}) VALUES ({values})";
+            var queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values})";
 
             using var command = new NpgsqlCommand(queryString, dbConnection.Connection, dbConnection.Transaction);
 
@@ -214,7 +214,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
             foreach (var property in properties)
             {
-                columnsBuilder.Append($"{property.Name}, ");
+                columnsBuilder.Append($"\"{property.Name}\", ");
 
                 var value = property.GetValue(parameter, null);
 
@@ -244,7 +244,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                 }
                 else if (valueType == typeof(bool))
                 {
-                    segment = (bool)value ? "1" : "0";
+                    segment = (bool)value ? "true" : "false";
                 }
                 else
                 {
@@ -288,17 +288,17 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                     {
                         var dateParameter = ((DateTime?)property.GetValue(parameter, null))?.ToString("yyyy-MM-dd HH:mm:ss") ?? "0";
 
-                        segment = $"{property.Name} = '{dateParameter}'";
+                        segment = $"\"{property.Name}\" = '{dateParameter}'";
                     }
                     else if (property.PropertyType == typeof(bool?))
                     {
                         if ((bool?)property.GetValue(parameter, null) == true)
                         {
-                            segment = $"{property.Name} = 1";
+                            segment = $"\"{property.Name}\" = true";
                         }
                         else
                         {
-                            segment = $"{property.Name} = 0";
+                            segment = $"\"{property.Name}\" = false";
                         }
                     }
                     else if
@@ -309,14 +309,14 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                         property.PropertyType == typeof(int?)
                         )
                     {
-                        segment = $"{property.Name} = {property.GetValue(parameter, null)}";
+                        segment = $"\"{property.Name}\" = {property.GetValue(parameter, null)}";
                     }
                     else
                     {
-                        segment = $"{property.Name} = '{property.GetValue(parameter, null)}'";
+                        segment = $"\"{property.Name}\" = '{property.GetValue(parameter, null)}'";
                     }
 
-                    segment = $"{segment}, ";
+                    segment = $"{segment} AND ";
 
                     builder.Append(segment);
                 }
@@ -327,7 +327,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             if (builder.Length > 0)
             {
                 where = builder.ToString();
-                where = where[..^2];
+                where = where[..^5];
             }
 
             return where;

@@ -10,12 +10,12 @@ namespace CORE_VS_PLUGIN.Commands
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class CMD_Generate_MySQL_ORM
+    internal sealed class CMD_Generate_PostgreSQL_ORM
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 4129;
+        public const int CommandId = 4130;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -28,12 +28,12 @@ namespace CORE_VS_PLUGIN.Commands
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CMD_Generate_MySQL_ORM"/> class.
+        /// Initializes a new instance of the <see cref="CMD_Generate_PostgreSQL_ORM"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private CMD_Generate_MySQL_ORM(AsyncPackage package, OleMenuCommandService commandService)
+        private CMD_Generate_PostgreSQL_ORM(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -46,7 +46,7 @@ namespace CORE_VS_PLUGIN.Commands
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static CMD_Generate_MySQL_ORM Instance
+        public static CMD_Generate_PostgreSQL_ORM Instance
         {
             get;
             private set;
@@ -69,12 +69,12 @@ namespace CORE_VS_PLUGIN.Commands
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in CMD_Generate_MySQL_ORM's constructor requires
+            // Switch to the main thread - the call to AddCommand in CMD_Generate_PostgreSQL_ORM's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new CMD_Generate_MySQL_ORM(package, commandService);
+            Instance = new CMD_Generate_PostgreSQL_ORM(package, commandService);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace CORE_VS_PLUGIN.Commands
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var window = new ORM_GENERATOR_WINDOW(GENERATOR_PLUGIN.MySQL);
+            var window = new ORM_GENERATOR_WINDOW(GENERATOR_PLUGIN.PostgreSQL);
             window.Show();
         }
     }

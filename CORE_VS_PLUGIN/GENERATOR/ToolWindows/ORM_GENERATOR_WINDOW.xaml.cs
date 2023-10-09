@@ -46,6 +46,10 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR
             {
                 isSuccess = CORE_MySQL_DB_Generator.GenerateORMs_From_MySQL(txtConfigurationFile.Text);
             }
+            else if (GENERATOR_PLUGIN == GENERATOR_PLUGIN.PostgreSQL)
+            {
+                isSuccess = CORE_PostgreSQL_DB_Generator.GenerateORMs_From_PostgreSQL(txtConfigurationFile.Text);
+            }
 
             var messageBoxText = isSuccess ? "Successfully generated ORM classes!" : "Failed to generate ORM classes!";
             var caption = "Operation result";

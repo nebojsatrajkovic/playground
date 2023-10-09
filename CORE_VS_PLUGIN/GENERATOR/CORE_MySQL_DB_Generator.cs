@@ -1,4 +1,6 @@
-﻿using CORE_VS_PLUGIN.MSSQL_GENERATOR;
+﻿using CORE_VS_PLUGIN.GENERATOR.Enumerations;
+using CORE_VS_PLUGIN.GENERATOR.Model;
+using CORE_VS_PLUGIN.MSSQL_GENERATOR;
 using CORE_VS_PLUGIN.MSSQL_GENERATOR.Enumerations;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -99,7 +101,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                                             DataType = 0,
                                             IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Null")) != "NO",
                                             OrdinalPosition = 0,
-                                            Is_MySQL_PrimaryKey = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Key")) == "Pri"
+                                            IsPrimaryKey = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Key")) == "Pri"
                                         });
                                     }
 
@@ -136,7 +138,8 @@ namespace CORE_VS_PLUGIN.GENERATOR
                                    .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.NAMESPACE.Description(), configuration.ORM_Namespace)
                                    .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.TABLE_NAME.Description(), table.Name)
                                    .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.MODEL_ATTRIBUTES.Description(), modelBuilder.ToString())
-                                   .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.QUERY_ATTRIBUTES.Description(), queryBuilder.ToString());
+                                   .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.QUERY_ATTRIBUTES.Description(), queryBuilder.ToString())
+                                   .Replace(CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.DB_TYPE.Description(), GENERATOR_PLUGIN.MySQL.Description());
 
                                 File.WriteAllText($"{configuration.ORM_Location}\\{table.Name}.cs", tableTemplate);
                             }
@@ -163,13 +166,6 @@ namespace CORE_VS_PLUGIN.GENERATOR
             }
 
             return isSuccess;
-        }
-
-        internal static string GetCSharpType(string type)
-        {
-            // TODO
-
-            return string.Empty;
         }
     }
 }

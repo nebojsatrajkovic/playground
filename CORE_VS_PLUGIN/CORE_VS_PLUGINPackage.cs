@@ -49,6 +49,7 @@ namespace CORE_VS_PLUGIN
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await CORE_VS_PLUGIN.Commands.CMD_Generate_MSSQL_ORM.InitializeAsync(this);
             await CORE_VS_PLUGIN.Commands.CMD_Generate_MySQL_ORM.InitializeAsync(this);
+            await CORE_VS_PLUGIN.Commands.CMD_Generate_PostgreSQL_ORM.InitializeAsync(this);
         }
 
         #endregion

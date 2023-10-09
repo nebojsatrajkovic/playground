@@ -316,7 +316,7 @@ namespace Core.DB.Plugin.MSSQL.Database
                         segment = $"{property.Name} = '{property.GetValue(parameter, null)}'";
                     }
 
-                    segment = $"{segment}, ";
+                    segment = $"{segment} AND ";
 
                     builder.Append(segment);
                 }
@@ -327,7 +327,7 @@ namespace Core.DB.Plugin.MSSQL.Database
             if (builder.Length > 0)
             {
                 where = builder.ToString();
-                where = where[..^2];
+                where = where[..^5];
             }
 
             return where;

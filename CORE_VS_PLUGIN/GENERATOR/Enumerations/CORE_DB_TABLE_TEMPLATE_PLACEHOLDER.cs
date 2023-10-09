@@ -14,6 +14,9 @@ namespace CORE_VS_PLUGIN.MSSQL_GENERATOR.Enumerations
         MODEL_ATTRIBUTES,
 
         [Description("${QUERY_ATTRIBUTES}")]
-        QUERY_ATTRIBUTES
+        QUERY_ATTRIBUTES,
+
+        [Description("${DB_TYPE}")]
+        DB_TYPE
     }
 }

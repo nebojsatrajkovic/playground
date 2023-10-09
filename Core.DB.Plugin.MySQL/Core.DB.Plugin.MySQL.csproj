@@ -16,6 +16,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Core.DB.Plugin.PostgreSQL\Core.DB.Plugin.PostgreSQL.csproj" />
 	  <ProjectReference Include="..\Core.DB.Plugin.Shared\Core.DB.Plugin.Shared.csproj" />
 	</ItemGroup>
 
