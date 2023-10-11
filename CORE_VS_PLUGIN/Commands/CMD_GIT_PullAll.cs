@@ -104,7 +104,7 @@ namespace CORE_VS_PLUGIN.Commands
                 {
                     var commandoutput = CORE_VS_PLUGIN_HELPER.CommandOutput($"cd {projectFileInfo.DirectoryName} & git pull");
                     
-                    CORE_VS_PLUGIN_HELPER.GIT_WriteToConsole(dte, commandoutput);
+                    CORE_VS_PLUGIN_HELPER.GIT_WriteToConsole(dte, $"{projectFileInfo.Name} - {commandoutput}");
                 }
             }
             catch (Exception ex)

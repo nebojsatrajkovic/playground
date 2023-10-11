@@ -15,7 +15,7 @@
         <Button Name="btExecute" Content="Generate ORM" HorizontalAlignment="Center" Margin="0,411,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.129,0.453" Width="380" Height="39" Click="btExecute_Click"/>
 
         <Label Content="Configuration:" HorizontalAlignment="Center" Margin="0,235,311,0" VerticalAlignment="Top" RenderTransformOrigin="-0.277,0.401"/>
-        <TextBox Name="txtConfigurationFile" Margin="0,266,60,0" HorizontalAlignment="Center" TextWrapping="Wrap" Text="C:\CORE_VS_PLUGIN\MSSQL\configuration.json" Height="45" VerticalAlignment="Top" Width="331"/>
+        <TextBox Name="txtConfigurationFile" Margin="0,266,60,0" HorizontalAlignment="Center" TextWrapping="Wrap" Text="C:\CORE_VS_PLUGIN\configuration.json" Height="45" VerticalAlignment="Top" Width="331"/>
         <Button Name="btnChooseConfigurationFile" Content="..." HorizontalAlignment="Center" Margin="345,265,0,0" VerticalAlignment="Top" Width="52" Height="46" Click="btnChooseConfigurationFile_Click"/>
 
         <Label HorizontalAlignment="Center" Margin="0,20,0,0" VerticalAlignment="Top" RenderTransformOrigin="-1.105,-0.269" Width="380" Height="50">
