@@ -198,6 +198,8 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 cSharpType == "double" ||
                 cSharpType == "float" ||
                 cSharpType == "int" ||
+                cSharpType == "long" ||
+                cSharpType == "DateTime" ||
                 cSharpType == "bool";
         }
 
@@ -217,6 +219,8 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 case "int2":
                 case "int4":
                     return "int";
+                case "int8":
+                    return "long";
                 case "varchar":
                 case "text":
                     return "string";

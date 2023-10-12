@@ -246,6 +246,15 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                 {
                     segment = (bool)value ? "true" : "false";
                 }
+                else if (valueType == typeof(string))
+                {
+                    if (((string)value).Contains("'"))
+                    {
+                        value = ((string)value).Replace("'", "''");
+                    }
+
+                    segment = $"'{value}'";
+                }
                 else
                 {
                     segment = $"'{value}'";
