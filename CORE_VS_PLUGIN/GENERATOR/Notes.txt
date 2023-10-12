@@ -1,4 +1,5 @@
 ﻿[TODO]
+- [*] create win cmd commands to generate classes in order to use this with external companies
 - test if mysql and mssql have same issue when string value contains "'" character, for example (Player Unknown's Battlegrounds)
 - refactor generator to create parameterized query -> enables proper handling of special values
 - Implement code-first generator -> generate mssql script with create/alter statements
