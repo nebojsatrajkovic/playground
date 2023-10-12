@@ -81,7 +81,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                         foreach (var tableName in tableNames)
                         {
-                            var query_GetTableData = $"SHOW COLUMNS FROM {tableName};";
+                            var query_GetTableData = $"SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{tableName}';";
 
                             var table = new CORE_DB_TABLE
                             {
@@ -96,12 +96,12 @@ namespace CORE_VS_PLUGIN.GENERATOR
                                     {
                                         table.Columns.Add(new CORE_DB_TABLE_COLUMN
                                         {
-                                            Name = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Field")),
-                                            TypeName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Type")),
+                                            Name = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_NAME")),
+                                            TypeName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("DATA_TYPE")),
                                             DataType = 0,
-                                            IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Null")) != "NO",
-                                            OrdinalPosition = 0,
-                                            IsPrimaryKey = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("Key")) == "Pri"
+                                            IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("IS_NULLABLE")) != "NO",
+                                            OrdinalPosition = reader_GetTableData.GetInt32(reader_GetTableData.GetOrdinal("ORDINAL_POSITION")),
+                                            IsPrimaryKey = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_KEY")) == "PRI"
                                         });
                                     }
 
@@ -129,9 +129,30 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                                 foreach (var column in table.Columns)
                                 {
-                                    // TODO implement
+                                    var cSharpType = GetCSharpType(column.TypeName);
 
-                                    continue;
+                                    if (column.IsNullable)
+                                    {
+                                        modelBuilder.AppendLine($"        public {cSharpType}? {column.Name} {{ get; set; }}");
+                                    }
+                                    else
+                                    {
+                                        if (column.IsPrimaryKey && cSharpType == "Guid")
+                                        {
+                                            modelBuilder.AppendLine($"        public Guid {column.Name} {{ get; set; }} = Guid.NewGuid();");
+                                        }
+
+                                        else if (IsValueType(cSharpType))
+                                        {
+                                            modelBuilder.AppendLine($"        public {cSharpType} {column.Name} {{ get; set; }}");
+                                        }
+                                        else
+                                        {
+                                            modelBuilder.AppendLine($"        public {cSharpType} {column.Name} {{ get; set; }} = null!;");
+                                        }
+                                    }
+
+                                    queryBuilder.AppendLine($"        public {cSharpType}? {column.Name} {{ get; set; }} = null;");
                                 }
 
                                 var tableTemplate = template
@@ -166,6 +187,57 @@ namespace CORE_VS_PLUGIN.GENERATOR
             }
 
             return isSuccess;
+        }
+
+        static bool IsValueType(string cSharpType)
+        {
+            return
+                cSharpType == "decimal" ||
+                cSharpType == "double" ||
+                cSharpType == "float" ||
+                cSharpType == "int" ||
+                cSharpType == "bool";
+        }
+
+        static string GetCSharpType(string typeName)
+        {
+            switch (typeName)
+            {
+                case "binary":
+                    return "Guid";
+
+                case "decimal":
+                    return "decimal";
+
+                case "double":
+                    return "double";
+
+                case "float":
+                    return "float";
+
+                case "bigint":
+                case "int":
+                case "smallint":
+                    return "int";
+
+                case "longtext":
+                case "text":
+                case "mediumtext":
+                case "json":
+                case "char":
+                    return "string";
+
+                case "timestamp":
+                case "datetime":
+                case "time":
+                    return "DateTime";
+
+                case "tinyint":
+                    return "bool";
+
+                default:
+                    return "object";
+            }
         }
     }
 }

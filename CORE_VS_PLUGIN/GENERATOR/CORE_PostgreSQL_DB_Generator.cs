@@ -191,7 +191,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
             return isSuccess;
         }
 
-        private static bool IsValueType(string cSharpType)
+        static bool IsValueType(string cSharpType)
         {
             return
                 cSharpType == "decimal" ||
@@ -201,7 +201,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 cSharpType == "bool";
         }
 
-        private static string GetCSharpType(string typeName)
+        static string GetCSharpType(string typeName)
         {
             switch (typeName)
             {
