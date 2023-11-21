@@ -130,10 +130,11 @@ namespace CORE_VS_PLUGIN.Commands
 
                 foreach (var selectedItem in selectedSolutionItems)
                 {
-                    var parameters = new Dictionary<string, string>();
-
-                    parameters["Project_Path"] = selectedItem.ContainingProjectPath;
-                    parameters["File_Path"] = selectedItem.SelectedFilePath;
+                    var parameters = new Dictionary<string, string>
+                    {
+                        ["Project_Path"] = selectedItem.ContainingProjectPath,
+                        ["File_Path"] = selectedItem.SelectedFilePath
+                    };
 
                     var a = selectedItem.Item.ContainingProject;
 
