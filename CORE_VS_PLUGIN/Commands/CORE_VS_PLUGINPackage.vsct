@@ -42,6 +42,9 @@
 			<Group guid="guidCORE_VS_PLUGINPackageCmdSet_solution" id="MyMenuGroup" priority="0x0600">
 				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE" />
 			</Group>
+			<Group guid="guidCORE_VS_PLUGINPackageCmdSet_itemnode" id="MyMenuGroup" priority="0x0600">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
+			</Group>
 		</Groups>
 
 		<!--Buttons section. -->
@@ -85,6 +88,13 @@
 					<ButtonText>[GIT] Pull all repositories</ButtonText>
 				</Strings>
 			</Button>
+			<Button guid="guidCORE_VS_PLUGINPackageCmdSet_itemnode" id="cmdidCMD_Generate_Query" priority="0x0100" type="Button">
+				<Parent guid="guidCORE_VS_PLUGINPackageCmdSet_itemnode" id="MyMenuGroup" />
+				<Icon guid="CMD_Generate_Query_icon" id="CMD_Generate_Query_icon1" />
+				<Strings>
+					<ButtonText>[DB] Generate query</ButtonText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 		<!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -93,6 +103,7 @@
 			<Bitmap guid="CMD_Generate_MySQL_ORM_icon" href="Resources\CMD_Generate_MySQL_ORM_icon.png" usedList="CMD_Generate_MySQL_ORM_icon1" />
 			<Bitmap guid="CMD_Generate_PostgreSQL_ORM_icon" href="Resources\CMD_Generate_PostgreSQL_ORM_icon.png" usedList="CMD_Generate_PostgreSQL_ORM_icon1" />
 			<Bitmap guid="CMD_GIT_PullAll_icon" href="Resources\CMD_GIT_PullAll_icon.png" usedList="CMD_GIT_PullAll_icon1" />
+			<Bitmap guid="CMD_Generate_Query_icon" href="Resources\CMD_Generate_Query_icon.png" usedList="CMD_Generate_Query_icon1" />
 		</Bitmaps>
 	</Commands>
 
@@ -113,6 +124,11 @@
 			<IDSymbol value="4131" name="cmdidCMD_GIT_PullAll" />
 		</GuidSymbol>
 
+		<GuidSymbol name="guidCORE_VS_PLUGINPackageCmdSet_itemnode" value="{1d0d17d4-abaf-4a9e-b385-1b0b6ceb2670}">
+			<IDSymbol name="MyMenuGroup" value="0x1020" />
+			<IDSymbol value="4131" name="cmdidCMD_Generate_Query" />
+		</GuidSymbol>
+
 		<GuidSymbol name="CMD_Generate_MSSQL_ORM_icon" value="{A0B51B3C-BE84-4738-B0E6-E760DA775715}" />
 		<GuidSymbol name="CMD_Generate_MSSQL_ORM_icon" value="{A0B51B3C-BE84-4738-B0E6-E760DA775715}">
 			<IDSymbol name="CMD_Generate_MSSQL_ORM_icon1" value="1" />
@@ -131,6 +147,11 @@
 		<GuidSymbol name="CMD_GIT_PullAll_icon" value="{8F645663-35B0-4E46-963B-6C2EE1AFEF3B}" />
 		<GuidSymbol name="CMD_GIT_PullAll_icon" value="{8F645663-35B0-4E46-963B-6C2EE1AFEF3B}">
 			<IDSymbol name="CMD_GIT_PullAll_icon1" value="1" />
+		</GuidSymbol>
+
+		<GuidSymbol name="CMD_Generate_Query_icon" value="{6bd690fa-1ee4-4ff9-bdbc-0fa7ad383b57}" />
+		<GuidSymbol name="CMD_Generate_Query_icon" value="{6bd690fa-1ee4-4ff9-bdbc-0fa7ad383b57}">
+			<IDSymbol name="CMD_Generate_Query_icon1" value="1" />
 		</GuidSymbol>
 	</Symbols>
 </CommandTable>

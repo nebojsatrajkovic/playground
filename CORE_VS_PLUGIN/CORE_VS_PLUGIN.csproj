@@ -49,6 +49,7 @@
     <Compile Include="Commands\CMD_Generate_MSSQL_ORM.cs" />
     <Compile Include="Commands\CMD_Generate_MySQL_ORM.cs" />
     <Compile Include="Commands\CMD_Generate_PostgreSQL_ORM.cs" />
+    <Compile Include="Commands\CMD_Generate_Query.cs" />
     <Compile Include="Commands\CMD_GIT_PullAll.cs" />
     <Compile Include="GENERATOR\CORE_MySQL_DB_Generator.cs" />
     <Compile Include="GENERATOR\CORE_PostgreSQL_DB_Generator.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="GENERATOR\CORE_DB_GENERATOR_Configuration.cs" />
     <Compile Include="GENERATOR\CORE_MSSQL_DB_Generator.cs" />
     <Compile Include="GENERATOR\Enumerations\CORE_DB_TABLE_TEMPLATE_PLACEHOLDER.cs" />
+    <Compile Include="GENERATOR\Model\CORE_DB_QUERY_XML.cs" />
     <Compile Include="GENERATOR\Model\CORE_DB_TABLE.cs" />
     <Compile Include="GENERATOR\ToolWindows\ORM_GENERATOR_WINDOW.xaml.cs">
       <DependentUpon>ORM_GENERATOR_WINDOW.xaml</DependentUpon>
@@ -110,7 +112,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Commands\Resources\CMD_Generate_Query_icon.png" />
     <Content Include="Commands\Resources\CMD_GIT_PullAll_icon.png" />
+    <Content Include="Get_Products_for_ProductIDs.xml" />
     <Content Include="logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

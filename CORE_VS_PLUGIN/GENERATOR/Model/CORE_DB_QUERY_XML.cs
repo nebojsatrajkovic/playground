@@ -1,0 +1,105 @@
+﻿// using System.Xml.Serialization;
+// XmlSerializer serializer = new XmlSerializer(typeof(CORE_DB_QUERY_XML_Template));
+// using (StringReader reader = new StringReader(xml))
+// {
+//    var test = (CORE_DB_QUERY_XML_Template)serializer.Deserialize(reader);
+// }
+
+using System.Collections.Generic;
+using System.Xml.Serialization;
+
+[XmlRoot(ElementName = "Template")]
+public class CORE_DB_QUERY_XML_Template
+{
+
+    [XmlElement(ElementName = "Meta")]
+    public CORE_DB_QUERY_XML_Meta Meta { get; set; }
+
+    [XmlElement(ElementName = "SQL")]
+    public string SQL { get; set; }
+
+    [XmlElement(ElementName = "Parameter")]
+    public CORE_DB_QUERY_XML_Parameter Parameter { get; set; }
+
+    [XmlElement(ElementName = "Result")]
+    public CORE_DB_QUERY_XML_Result Result { get; set; }
+}
+
+[XmlRoot(ElementName = "Meta")]
+public class CORE_DB_QUERY_XML_Meta
+{
+
+    [XmlAttribute(AttributeName = "Method_Namespace")]
+    public string MethodNamespace { get; set; }
+
+    [XmlAttribute(AttributeName = "Method_ClassName")]
+    public string MethodClassName { get; set; }
+}
+
+[XmlRoot(ElementName = "Parameter")]
+public class CORE_DB_QUERY_XML_Parameter
+{
+
+    [XmlElement(ElementName = "ClassMember")]
+    public List<CORE_DB_QUERY_XML_ClassMember> ClassMember { get; set; }
+
+    [XmlAttribute(AttributeName = "ClassName")]
+    public string ClassName { get; set; }
+}
+
+[XmlRoot(ElementName = "ResultClass")]
+public class CORE_DB_QUERY_XML_ResultClass
+{
+
+    [XmlElement(ElementName = "ClassMember")]
+    public List<CORE_DB_QUERY_XML_ClassMember> ClassMember { get; set; }
+
+    [XmlAttribute(AttributeName = "Name")]
+    public string Name { get; set; }
+
+    [XmlAttribute(AttributeName = "IsArray")]
+    public bool IsArray { get; set; }
+
+    [XmlAttribute(AttributeName = "GroupBy")]
+    public string GroupBy { get; set; }
+}
+
+[XmlRoot(ElementName = "Result")]
+public class CORE_DB_QUERY_XML_Result
+{
+
+    [XmlElement(ElementName = "ResultClass")]
+    public CORE_DB_QUERY_XML_ResultClass ResultClass { get; set; }
+
+    [XmlAttribute(AttributeName = "Returns_just_the_status_of_the_operation")]
+    public bool ReturnsJustTheStatusOfTheOperation { get; set; }
+
+    [XmlAttribute(AttributeName = "Returns_a_StandardDataType_or_StadardDataTypeArray")]
+    public bool ReturnsAStandardDataTypeOrStadardDataTypeArray { get; set; }
+
+    [XmlAttribute(AttributeName = "Returns_an_Object_or_ObjectArray")]
+    public bool ReturnsAnObjectOrObjectArray { get; set; }
+}
+
+[XmlRoot(ElementName = "ClassMember")]
+public class CORE_DB_QUERY_XML_ClassMember
+{
+
+    [XmlAttribute(AttributeName = "Name")]
+    public string Name { get; set; }
+
+    [XmlAttribute(AttributeName = "Type")]
+    public string Type { get; set; }
+
+    [XmlAttribute(AttributeName = "IsArray")]
+    public bool IsArray { get; set; }
+
+    [XmlElement(ElementName = "ClassMember")]
+    public List<CORE_DB_QUERY_XML_ClassMember> ClassMembers { get; set; }
+
+    [XmlAttribute(AttributeName = "IsClass")]
+    public bool IsClass { get; set; }
+
+    [XmlAttribute(AttributeName = "GroupBy")]
+    public string GroupBy { get; set; }
+}
