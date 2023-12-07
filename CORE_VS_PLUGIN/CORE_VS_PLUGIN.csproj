@@ -51,6 +51,7 @@
     <Compile Include="Commands\CMD_Generate_PostgreSQL_ORM.cs" />
     <Compile Include="Commands\CMD_Generate_Query.cs" />
     <Compile Include="Commands\CMD_GIT_PullAll.cs" />
+    <Compile Include="GENERATOR\CORE_DB_Query_Generator.cs" />
     <Compile Include="GENERATOR\CORE_MySQL_DB_Generator.cs" />
     <Compile Include="GENERATOR\CORE_PostgreSQL_DB_Generator.cs" />
     <Compile Include="GENERATOR\Enumerations\GENERATOR_PLUGIN.cs" />
@@ -114,7 +115,13 @@
     </Content>
     <Content Include="Commands\Resources\CMD_Generate_Query_icon.png" />
     <Content Include="Commands\Resources\CMD_GIT_PullAll_icon.png" />
-    <Content Include="Get_Products_for_ProductIDs.xml" />
+    <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_RAW_RESULT_TEMPLATE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Content Include="Testing\DirectDB\Products\XML\Get_Products_for_ProductIDs.xml" />
+    <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_TEMPLATE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <Content Include="logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

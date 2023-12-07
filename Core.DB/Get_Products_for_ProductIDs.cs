@@ -142,14 +142,17 @@ namespace Core.DB
 
             public static List<MEI_PR_GPfPIDs_1440> Convert(List<MEI_PR_GPfPIDs_1440_raw> rawResult)
             {
-                var groupResult = from el_MEI_PR_GPfPIDs_1440 in rawResult.Where(element => !EqualsDefaultValue(element.CMN_PRO_ProductID)).ToList()
+                var groupResult =
+
+                                  from el_MEI_PR_GPfPIDs_1440 in rawResult
 
                                   group el_MEI_PR_GPfPIDs_1440 by new
                                   {
                                       el_MEI_PR_GPfPIDs_1440.CMN_PRO_ProductID
                                   }
 
-                                into gfunct_MEI_PR_GPfPIDs_1440
+                                  into gfunct_MEI_PR_GPfPIDs_1440
+
                                   select new MEI_PR_GPfPIDs_1440
                                   {
                                       CMN_PRO_ProductID = gfunct_MEI_PR_GPfPIDs_1440.Key.CMN_PRO_ProductID,
@@ -160,7 +163,7 @@ namespace Core.DB
 
                                       Variants =
                                       (
-                                          from el_Variants in gfunct_MEI_PR_GPfPIDs_1440.Where(element => !EqualsDefaultValue(element.CMN_PRO_Product_VariantID)).ToList()
+                                          from el_Variants in gfunct_MEI_PR_GPfPIDs_1440
                                           group el_Variants by new
                                           {
                                               el_Variants.CMN_PRO_Product_VariantID
@@ -178,9 +181,10 @@ namespace Core.DB
                                               OrderSequenceNumber = gfunct_Variants.First().OrderSequenceNumber
                                           }
                                       ).ToList(),
+
                                       Customizations =
                                       (
-                                          from el_Customizations in gfunct_MEI_PR_GPfPIDs_1440.Where(element => !EqualsDefaultValue(element.CMN_PRO_CUS_CustomizationID)).ToList()
+                                          from el_Customizations in gfunct_MEI_PR_GPfPIDs_1440
                                           group el_Customizations by new
                                           {
                                               el_Customizations.CMN_PRO_CUS_CustomizationID
@@ -192,7 +196,7 @@ namespace Core.DB
                                               C_OrderSequence = gfunct_Customizations.First().C_OrderSequence,
                                               CustomizationVariants =
                                               (
-                                                  from el_CustomizationVariants in gfunct_Customizations.Where(element => !EqualsDefaultValue(element.CMN_PRO_CUS_Customization_VariantID)).ToList()
+                                                  from el_CustomizationVariants in gfunct_Customizations
                                                   group el_CustomizationVariants by new
                                                   {
                                                       el_CustomizationVariants.CMN_PRO_CUS_Customization_VariantID

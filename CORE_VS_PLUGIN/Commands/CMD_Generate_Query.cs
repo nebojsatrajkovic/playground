@@ -1,5 +1,7 @@
-﻿using EnvDTE;
+﻿using CORE_VS_PLUGIN.GENERATOR;
+using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
@@ -136,18 +138,22 @@ namespace CORE_VS_PLUGIN.Commands
                         ["File_Path"] = selectedItem.SelectedFilePath
                     };
 
-                    var a = selectedItem.Item.ContainingProject;
-
                     var content = File.ReadAllText(selectedItem.SelectedFilePath);
                     var serializer = new XmlSerializer(typeof(CORE_DB_QUERY_XML_Template));
+
+                    CORE_DB_QUERY_XML_Template xmlTemplate = null;
+
                     using (var reader = new StringReader(content))
                     {
-                        var template = (CORE_DB_QUERY_XML_Template)serializer.Deserialize(reader);
+                        xmlTemplate = (CORE_DB_QUERY_XML_Template)serializer.Deserialize(reader);
+                    }
+
+                    if (xmlTemplate != null)
+                    {
+                        CORE_DB_Query_Generator.GenerateQuery(selectedItem.Item.ContainingProject, xmlTemplate, parameters);
                     }
                 }
             }
-
-            // TODO generate query code
 
             VsShellUtilities.ShowMessageBox(
                 this.package,

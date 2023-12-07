@@ -84,7 +84,6 @@
 			<ClassMember Name="Product_UID" Type="Guid"  />
 			<ClassMember Name="Product_Number" Type="string"  />
 			<ClassMember Name="Document_RefID" Type="Guid"  />
-
 			<ClassMember Name="CutRevision_RefID" Type="Guid"  />
 
 			<ClassMember Name="Variants" Type="MEI_PR_GPfPIDs_1440_Variant" IsClass="true" IsArray="true" GroupBy="CMN_PRO_Product_VariantID">

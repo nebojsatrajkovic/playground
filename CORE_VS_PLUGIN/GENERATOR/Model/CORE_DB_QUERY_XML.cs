@@ -6,6 +6,7 @@
 // }
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 
 [XmlRoot(ElementName = "Template")]
@@ -62,23 +63,33 @@ public class CORE_DB_QUERY_XML_ResultClass
 
     [XmlAttribute(AttributeName = "GroupBy")]
     public string GroupBy { get; set; }
-}
 
-[XmlRoot(ElementName = "Result")]
-public class CORE_DB_QUERY_XML_Result
-{
 
-    [XmlElement(ElementName = "ResultClass")]
-    public CORE_DB_QUERY_XML_ResultClass ResultClass { get; set; }
+    public List<CORE_DB_QUERY_XML_ClassMember> GetAllClassMembers()
+    {
+        var allClassMembers = new List<CORE_DB_QUERY_XML_ClassMember>();
+        allClassMembers.AddRange(ClassMember.Where(x => !x.IsClass).ToList());
 
-    [XmlAttribute(AttributeName = "Returns_just_the_status_of_the_operation")]
-    public bool ReturnsJustTheStatusOfTheOperation { get; set; }
+        foreach (var item in ClassMember.Where(x => x.IsClass).ToList())
+        {
+            CollectClassMembers(item, allClassMembers);
+        }
 
-    [XmlAttribute(AttributeName = "Returns_a_StandardDataType_or_StadardDataTypeArray")]
-    public bool ReturnsAStandardDataTypeOrStadardDataTypeArray { get; set; }
+        return allClassMembers;
+    }
 
-    [XmlAttribute(AttributeName = "Returns_an_Object_or_ObjectArray")]
-    public bool ReturnsAnObjectOrObjectArray { get; set; }
+    private static void CollectClassMembers(CORE_DB_QUERY_XML_ClassMember classMember, List<CORE_DB_QUERY_XML_ClassMember> allClassMembers)
+    {
+        if (classMember.ClassMembers != null)
+        {
+            allClassMembers.AddRange(classMember.ClassMembers.Where(x => !x.IsClass).ToList());
+
+            foreach (var nestedClassMember in classMember.ClassMembers.Where(x => x.IsClass).ToList())
+            {
+                CollectClassMembers(nestedClassMember, allClassMembers);
+            }
+        }
+    }
 }
 
 [XmlRoot(ElementName = "ClassMember")]
@@ -102,4 +113,21 @@ public class CORE_DB_QUERY_XML_ClassMember
 
     [XmlAttribute(AttributeName = "GroupBy")]
     public string GroupBy { get; set; }
+}
+
+[XmlRoot(ElementName = "Result")]
+public class CORE_DB_QUERY_XML_Result
+{
+
+    [XmlElement(ElementName = "ResultClass")]
+    public CORE_DB_QUERY_XML_ResultClass ResultClass { get; set; }
+
+    [XmlAttribute(AttributeName = "Returns_just_the_status_of_the_operation")]
+    public bool ReturnsJustTheStatusOfTheOperation { get; set; }
+
+    [XmlAttribute(AttributeName = "Returns_a_StandardDataType_or_StadardDataTypeArray")]
+    public bool ReturnsAStandardDataTypeOrStadardDataTypeArray { get; set; }
+
+    [XmlAttribute(AttributeName = "Returns_an_Object_or_ObjectArray")]
+    public bool ReturnsAnObjectOrObjectArray { get; set; }
 }
