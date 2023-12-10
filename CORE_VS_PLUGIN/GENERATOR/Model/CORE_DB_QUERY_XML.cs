@@ -113,6 +113,11 @@ public class CORE_DB_QUERY_XML_ClassMember
 
     [XmlAttribute(AttributeName = "GroupBy")]
     public string GroupBy { get; set; }
+
+    public List<CORE_DB_QUERY_XML_ClassMember> GetAllClassMembers()
+    {
+        return new List<CORE_DB_QUERY_XML_ClassMember> { this }.Concat(ClassMembers.SelectMany(x => x.GetAllClassMembers())).ToList();
+    }
 }
 
 [XmlRoot(ElementName = "Result")]

@@ -38,12 +38,6 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 classTemplate = reader.ReadToEnd();
             }
 
-            string rawResultTemplate;
-            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_RAW_RESULT_TEMPLATE.txt")))
-            {
-                rawResultTemplate = reader.ReadToEnd();
-            }
-
             var projectNameToken = pathTokens.First(x => x.Equals(project.Name));
             var index = pathTokens.IndexOf(projectNameToken);
             var commandLocationTokens = pathTokens.Skip(index).Take(pathTokens.Count - index).ToList();
@@ -59,35 +53,18 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 classTemplate = classTemplate.Replace("${COMMAND_LOCATION}", commandLocation);
             }
 
-            // raw result class
+            // classes
 
             {
-                rawResultTemplate = rawResultTemplate.Replace("${CLASS_NAME}", $"{xmlTemplate.Result.ResultClass.Name}_raw");
+                var customClasses = GenerateClasses(xmlTemplate);
 
-                var classMembers = xmlTemplate.Result.ResultClass.GetAllClassMembers();
-
-                var sb = new StringBuilder();
-
-                foreach (var item in classMembers)
+                if (customClasses?.Any() == true)
                 {
-                    sb.Append($"            public {item.Type} {item.Name} {{ get; set; }} " + Environment.NewLine);
+                    var combinedString = string.Join($"{Environment.NewLine}{Environment.NewLine}", customClasses);
+
+                    classTemplate = classTemplate.Replace("${CUSTOM_CLASSES}", combinedString);
                 }
-
-                rawResultTemplate = rawResultTemplate.Replace("${PROPERTIES}", sb.ToString());
-
-                classTemplate = classTemplate.Replace("${RAW_RESULT_CLASS}", rawResultTemplate);
             }
-
-            /*
-            
-            
-            
-            
-            ${PARAMETER_CLASS}
-            ${RESULT_CLASS}
-
-
-            */
 
             var classFilePath = $"{containingFolder}\\{xmlTemplate.Meta.MethodClassName}.cs";
 
@@ -128,6 +105,27 @@ namespace CORE_VS_PLUGIN.GENERATOR
             EmbeddedResource
         }
 
+        public static List<string> GenerateClasses(CORE_DB_QUERY_XML_Template xmlTemplate)
+        {
+            var returnValue = new List<string>();
+
+            var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsArray).ToList();
+
+            returnValue.AddRange(GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_raw", rawClassProperties, true));
+
+            if (xmlTemplate.Parameter?.ClassMember?.Any() == true)
+            {
+                returnValue.AddRange(GenerateClass(xmlTemplate.Parameter.ClassName, xmlTemplate.Parameter.ClassMember));
+            }
+
+            if (xmlTemplate.Result?.ResultClass?.ClassMember?.Any() == true)
+            {
+                returnValue.AddRange(GenerateClass(xmlTemplate.Result.ResultClass.Name, xmlTemplate.Result.ResultClass.ClassMember));
+            }
+
+            return returnValue;
+        }
+
         public static void RawDataConverterGenerator(CORE_DB_QUERY_XML_Template xmlTemplate)
         {
             var resultClass = xmlTemplate.Result.ResultClass;
@@ -136,6 +134,53 @@ namespace CORE_VS_PLUGIN.GENERATOR
             {
 
             }
+        }
+
+        public static List<string> GenerateClass(string className, List<CORE_DB_QUERY_XML_ClassMember> members, bool isRaw = false)
+        {
+            var customClasses = members.SelectMany(x => x.GetAllClassMembers()).Where(x => x.IsClass).ToList();
+
+            var classes = new List<string>
+            {
+                GetClassString(className, members, isRaw)
+            };
+
+            customClasses.ForEach(x => classes.Add(GetClassString(x.Type, x.ClassMembers, isRaw)));
+
+            return classes;
+        }
+
+        private static string GetClassString(string className, List<CORE_DB_QUERY_XML_ClassMember> members, bool isRaw = false)
+        {
+            var templateFile = isRaw ? "CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_RAW_CLASS_TEMPLATE.txt" : "CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_CLASS_TEMPLATE.txt";
+
+            string classTemplate;
+            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(templateFile)))
+            {
+                classTemplate = reader.ReadToEnd();
+            }
+
+            classTemplate = classTemplate.Replace("${CLASS_NAME}", className);
+
+            var sb = new StringBuilder();
+
+            foreach (var member in members)
+            {
+                if (member.IsArray)
+                {
+                    sb.Append($"            public List<{member.Type}> {member.Name} {{ get; set; }}");
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.Append($"            public {member.Type} {member.Name} {{ get; set; }}");
+                    sb.AppendLine();
+                }
+            }
+
+            classTemplate = classTemplate.Replace("${PROPERTIES}", sb.ToString());
+
+            return classTemplate;
         }
     }
 }

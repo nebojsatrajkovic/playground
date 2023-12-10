@@ -115,7 +115,10 @@
     </Content>
     <Content Include="Commands\Resources\CMD_Generate_Query_icon.png" />
     <Content Include="Commands\Resources\CMD_GIT_PullAll_icon.png" />
-    <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_RAW_RESULT_TEMPLATE.txt">
+    <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_RAW_CLASS_TEMPLATE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_CLASS_TEMPLATE.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <Content Include="Testing\DirectDB\Products\XML\Get_Products_for_ProductIDs.xml" />

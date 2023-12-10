@@ -49,10 +49,6 @@ namespace ${NAMESPACE}
             return result;
 		}
 
-		${PARAMETER_CLASS}
-
-		${RESULT_CLASS}
-
-		${RAW_RESULT_CLASS}
+		${CUSTOM_CLASSES}
 	}
 }
