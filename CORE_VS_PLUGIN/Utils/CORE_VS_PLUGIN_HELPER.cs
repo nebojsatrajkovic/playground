@@ -50,7 +50,7 @@ namespace CORE_VS_PLUGIN.Utils
         {
             Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
             var dte = (DTE)ServiceProvider.GetService(typeof(DTE));
-            var slnPath = dte.Solution.FullName;
+            var slnPath = dte?.Solution.FullName ?? string.Empty;
 
             var slnFileInfo = new FileInfo(slnPath);
             var csprojPath = new FileInfo(slnPath).Directory.GetFiles().First(x => x.Name.ToLower().EndsWith("csproj"));

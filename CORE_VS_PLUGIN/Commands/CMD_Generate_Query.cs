@@ -166,6 +166,8 @@ namespace CORE_VS_PLUGIN.Commands
 
         public List<SelectedSolutionItem> GetSelectedSolutionItems(DTE2 application, string extensionFilter = null)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             List<SelectedSolutionItem> solutionItems = new List<SelectedSolutionItem>();
 
             UIHierarchy solutionExplorer = application.ToolWindows.SolutionExplorer;
