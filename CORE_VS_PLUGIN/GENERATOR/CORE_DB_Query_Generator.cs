@@ -1,4 +1,6 @@
 ﻿using EnvDTE;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
@@ -68,7 +70,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             var classFilePath = $"{containingFolder}\\{xmlTemplate.Meta.MethodClassName}.cs";
 
-            File.WriteAllText(classFilePath, classTemplate);
+            File.WriteAllText(classFilePath, classTemplate.FormatCode());
 
             CopyToProject(project, classFilePath);
         }
@@ -168,12 +170,12 @@ namespace CORE_VS_PLUGIN.GENERATOR
             {
                 if (member.IsArray)
                 {
-                    sb.Append($"            public List<{member.Type}> {member.Name} {{ get; set; }}");
+                    sb.Append($"public List<{member.Type}> {member.Name} {{ get; set; }}");
                     sb.AppendLine();
                 }
                 else
                 {
-                    sb.Append($"            public {member.Type} {member.Name} {{ get; set; }}");
+                    sb.Append($"public {member.Type} {member.Name} {{ get; set; }}");
                     sb.AppendLine();
                 }
             }
@@ -181,6 +183,14 @@ namespace CORE_VS_PLUGIN.GENERATOR
             classTemplate = classTemplate.Replace("${PROPERTIES}", sb.ToString());
 
             return classTemplate;
+        }
+
+        public static string FormatCode(this string csCode)
+        {
+            var tree = CSharpSyntaxTree.ParseText(csCode);
+            var root = tree.GetRoot().NormalizeWhitespace();
+            var ret = root.ToFullString();
+            return ret;
         }
     }
 }
