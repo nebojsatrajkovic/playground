@@ -118,11 +118,11 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsArray).ToList();
 
-            returnValue.AddRange(GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_raw", rawClassProperties, true));
-
-            var rawClassTemplate = returnValue.First();
+            var rawClassTemplate = GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_raw", rawClassProperties, true).First();
 
             rawClassTemplate = rawClassTemplate.Replace("${CONVERT_METHOD}", RawDataConverterGenerator(xmlTemplate));
+
+            returnValue.Add(rawClassTemplate);
 
             if (xmlTemplate.Parameter?.ClassMember?.Any() == true)
             {
@@ -181,6 +181,28 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 }
 
                 // TODO if any of the properties are classes or arrays -> add them
+
+                if (resultClass.ClassMember.Any(x => x.IsClass))
+                {
+                    foreach (var item in resultClass.ClassMember.Where(x => x.IsClass && !string.IsNullOrEmpty(x.GroupBy)).ToList())
+                    {
+                        var childResult = childTemplate.Replace("${MEMBER_NAME}", item.Name);
+                        childResult = childTemplate.Replace("${GROUPING_KEY}", item.GroupBy);
+                        childResult = childTemplate.Replace("${CLASS_NAME}", item.Type);
+
+                        // ${ELEMENT_NAME}
+                        // {GFUNCT_NAME}
+
+                        if (item.IsArray)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
 
                 result = result.Replace("${PROPERTIES}", sb.ToString());
             }

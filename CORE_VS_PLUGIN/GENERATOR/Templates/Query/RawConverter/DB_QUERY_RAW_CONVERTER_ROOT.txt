@@ -8,7 +8,7 @@
 		into gfunct_${CLASS_NAME}
 		select new ${CLASS_NAME}
 		{
-			${GROUPING_KEY} = gfunct_${CLASS_NAME}.Key.${GROUPING_KEY}
+			${GROUPING_KEY} = gfunct_${CLASS_NAME}.Key.${GROUPING_KEY},
 			${PROPERTIES}
 		};
 

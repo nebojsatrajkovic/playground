@@ -9,6 +9,7 @@
 	select new ${CLASS_NAME}
 	{
 		${GROUPING_KEY} = gfunct_${MEMBER_NAME}.Key.${GROUPING_KEY}
+		// TODO properties
 		${PROPERTY_NAME} = gfunct_${MEMBER_NAME}.FirstOrDefault().${PROPERTY_NAME}
 	}
 ).ToList()
