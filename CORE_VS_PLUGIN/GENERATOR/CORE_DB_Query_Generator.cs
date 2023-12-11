@@ -68,6 +68,11 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 }
             }
 
+            // raw converter
+            {
+
+            }
+
             var classFilePath = $"{containingFolder}\\{xmlTemplate.Meta.MethodClassName}.cs";
 
             File.WriteAllText(classFilePath, classTemplate.FormatCode());
@@ -115,6 +120,10 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             returnValue.AddRange(GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_raw", rawClassProperties, true));
 
+            var rawClassTemplate = returnValue.First();
+
+            rawClassTemplate = rawClassTemplate.Replace("${CONVERT_METHOD}", RawDataConverterGenerator(xmlTemplate));
+
             if (xmlTemplate.Parameter?.ClassMember?.Any() == true)
             {
                 returnValue.AddRange(GenerateClass(xmlTemplate.Parameter.ClassName, xmlTemplate.Parameter.ClassMember));
@@ -128,14 +137,61 @@ namespace CORE_VS_PLUGIN.GENERATOR
             return returnValue;
         }
 
-        public static void RawDataConverterGenerator(CORE_DB_QUERY_XML_Template xmlTemplate)
+        public static string RawDataConverterGenerator(CORE_DB_QUERY_XML_Template xmlTemplate)
         {
+            string result;
+
+            string rootTemplate;
+            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.RawConverter.DB_QUERY_RAW_CONVERTER_ROOT.txt")))
+            {
+                rootTemplate = reader.ReadToEnd();
+            }
+
+            string rootPropertyTemplate;
+            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.RawConverter.DB_QUERY_RAW_CONVERTER_ROOT_PROPERTY.txt")))
+            {
+                rootPropertyTemplate = reader.ReadToEnd();
+            }
+
+            string childTemplate;
+            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.RawConverter.DB_QUERY_RAW_CONVERTER_CHILD.txt")))
+            {
+                childTemplate = reader.ReadToEnd();
+            }
+
             var resultClass = xmlTemplate.Result.ResultClass;
 
             if (!string.IsNullOrEmpty(resultClass.GroupBy))
             {
+                result = rootTemplate.Replace("${CLASS_NAME}", resultClass.Name);
+                result = result.Replace("${GROUPING_KEY}", resultClass.GroupBy);
+                result = result.Replace("${ELEMENT_NAME}", $"el_{resultClass.Name}");
 
+                var sb = new StringBuilder();
+                foreach (var item in resultClass.ClassMember.Where(x => !x.Name.Equals(resultClass.GroupBy)).ToList())
+                {
+                    if (!item.IsClass && !item.IsArray)
+                    {
+                        var property = rootPropertyTemplate.Replace("${PROPERTY_NAME}", item.Name);
+                        property = property.Replace("${CLASS_NAME}", resultClass.Name);
+
+                        sb.Append(property);
+                        sb.AppendLine();
+                    }
+                }
+
+                // TODO if any of the properties are classes or arrays -> add them
+
+                result = result.Replace("${PROPERTIES}", sb.ToString());
             }
+            else
+            {
+                // TODO just return raw class as a result
+
+                result = string.Empty;
+            }
+
+            return result;
         }
 
         public static List<string> GenerateClass(string className, List<CORE_DB_QUERY_XML_ClassMember> members, bool isRaw = false)
