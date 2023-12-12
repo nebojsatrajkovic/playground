@@ -180,31 +180,24 @@ namespace CORE_VS_PLUGIN.GENERATOR
                     }
                 }
 
+                result = result.Replace("${PROPERTIES}", sb.ToString());
+
                 // TODO if any of the properties are classes or arrays -> add them
 
                 if (resultClass.ClassMember.Any(x => x.IsClass))
                 {
-                    foreach (var item in resultClass.ClassMember.Where(x => x.IsClass && !string.IsNullOrEmpty(x.GroupBy)).ToList())
-                    {
-                        var childResult = childTemplate.Replace("${MEMBER_NAME}", item.Name);
-                        childResult = childTemplate.Replace("${GROUPING_KEY}", item.GroupBy);
-                        childResult = childTemplate.Replace("${CLASS_NAME}", item.Type);
+                    var gfunct_Name = $"gfunct_{resultClass.Name}";
 
-                        // ${ELEMENT_NAME}
-                        // {GFUNCT_NAME}
+                    var members = resultClass.ClassMember.Where(x => x.IsClass && !string.IsNullOrEmpty(x.GroupBy)).ToList();
 
-                        if (item.IsArray)
-                        {
+                    var a = GetChildrenGroupingConverter(gfunct_Name, members, childTemplate, rootPropertyTemplate);
 
-                        }
-                        else
-                        {
-
-                        }
-                    }
+                    result = result.Replace("${CHILD_GROUPING}", a);
                 }
-
-                result = result.Replace("${PROPERTIES}", sb.ToString());
+                else
+                {
+                    result = result.Replace("${CHILD_GROUPING}", string.Empty);
+                }
             }
             else
             {
@@ -214,6 +207,71 @@ namespace CORE_VS_PLUGIN.GENERATOR
             }
 
             return result;
+        }
+
+        public static string GetChildrenGroupingConverter(string gfunct_Name, List<CORE_DB_QUERY_XML_ClassMember> classMembers, string childTemplate, string propertyTemplate)
+        {
+            var resultSB = new StringBuilder();
+
+            foreach (var item in classMembers)
+            {
+                var childResult = childTemplate.Replace("${MEMBER_NAME}", item.Name);
+                childResult = childResult.Replace("${GROUPING_KEY}", item.GroupBy);
+                childResult = childResult.Replace("${CLASS_NAME}", item.Type);
+                childResult = childResult.Replace("${ELEMENT_NAME}", $"el_{item.Name}");
+                childResult = childResult.Replace("{GFUNCT_NAME}", $"{gfunct_Name}");
+
+                // ${PROPERTIES}
+
+                if (item.ClassMembers?.Any() == true && item.ClassMembers.Any(x => !x.IsClass && !x.IsArray && !x.Name.Equals(item.GroupBy)))
+                {
+                    var sb = new StringBuilder();
+
+                    foreach (var member in item.ClassMembers.Where(x => !x.IsClass && !x.IsArray && !x.Name.Equals(item.GroupBy)).ToList())
+                    {
+                        var property = propertyTemplate.Replace("${PROPERTY_NAME}", member.Name);
+                        property = property.Replace("${CLASS_NAME}", $"{item.Name}");
+
+                        sb.Append(property);
+                        sb.AppendLine();
+                    }
+
+                    childResult = childResult.Replace("${PROPERTIES}", sb.ToString());
+                }
+                else
+                {
+                    childResult = childResult.Replace("${PROPERTIES}", string.Empty);
+                }
+
+                if (item.ClassMembers?.Any() == true && item.ClassMembers.Any(x => x.IsClass))
+                {
+                    var child_gfunctName = $"gfunct_{item.Name}";
+
+                    var children = item.ClassMembers.Where(x => x.IsClass).ToList();
+
+                    var c = GetChildrenGroupingConverter(child_gfunctName, children, childTemplate, propertyTemplate);
+
+                    childResult = childResult.Replace("${CHILD_GROUPING}", c);
+                }
+                else
+                {
+                    childResult = childResult.Replace("${CHILD_GROUPING}", string.Empty);
+                }
+
+                if (item.IsArray)
+                {
+
+                }
+                else
+                {
+
+                }
+
+                resultSB.Append(childResult);
+                resultSB.Append(",");
+            }
+
+            return resultSB.ToString();
         }
 
         public static List<string> GenerateClass(string className, List<CORE_DB_QUERY_XML_ClassMember> members, bool isRaw = false)

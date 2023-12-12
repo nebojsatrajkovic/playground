@@ -10,6 +10,7 @@
 		{
 			${GROUPING_KEY} = gfunct_${CLASS_NAME}.Key.${GROUPING_KEY},
 			${PROPERTIES}
+			${CHILD_GROUPING}
 		};
 
 	return groupResult.ToList();
