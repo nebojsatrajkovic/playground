@@ -67,8 +67,8 @@ namespace CORE_VS_PLUGIN.GENERATOR
                     classTemplate = classTemplate.Replace("${CUSTOM_CLASSES}", combinedString);
                 }
 
-                classTemplate = classTemplate.Replace("${RESULT_GROUPING_TYPE}", xmlTemplate.Result.ResultClass.IsArray ? "ToList()" : "FirstOrDefault()");
-                classTemplate = classTemplate.Replace("${RETURN_TYPE}", xmlTemplate.Result.ResultClass.IsArray ? $"List<{xmlTemplate.Result.ResultClass.Name}>" : xmlTemplate.Result.ResultClass.Name);
+                classTemplate = classTemplate.Replace("${RESULT_GROUPING_TYPE}", xmlTemplate.Result.ResultClass.IsCollection ? "ToList()" : "FirstOrDefault()");
+                classTemplate = classTemplate.Replace("${RETURN_TYPE}", xmlTemplate.Result.ResultClass.IsCollection ? $"List<{xmlTemplate.Result.ResultClass.Name}>" : xmlTemplate.Result.ResultClass.Name);
             }
 
             // raw converter
@@ -119,7 +119,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
         {
             var returnValue = new List<string>();
 
-            var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsArray).ToList();
+            var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsCollection).ToList();
 
             var rawClassTemplate = GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_raw", rawClassProperties, true).First();
 
@@ -173,7 +173,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 var sb = new StringBuilder();
                 foreach (var item in resultClass.ClassMember.Where(x => !x.Name.Equals(resultClass.GroupBy)).ToList())
                 {
-                    if (!item.IsClass && !item.IsArray)
+                    if (!item.IsClass && !item.IsCollection)
                     {
                         var property = propertyTemplate.Replace("${PROPERTY_NAME}", item.Name);
                         property = property.Replace("${CLASS_NAME}", resultClass.Name);
@@ -222,11 +222,11 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 childResult = childResult.Replace("${ELEMENT_NAME}", $"el_{item.Name}");
                 childResult = childResult.Replace("{GFUNCT_NAME}", $"{gfunct_Name}");
 
-                if (item.ClassMembers?.Any() == true && item.ClassMembers.Any(x => !x.IsClass && !x.IsArray && !x.Name.Equals(item.GroupBy)))
+                if (item.ClassMembers?.Any() == true && item.ClassMembers.Any(x => !x.IsClass && !x.IsCollection && !x.Name.Equals(item.GroupBy)))
                 {
                     var sb = new StringBuilder();
 
-                    foreach (var member in item.ClassMembers.Where(x => !x.IsClass && !x.IsArray && !x.Name.Equals(item.GroupBy)).ToList())
+                    foreach (var member in item.ClassMembers.Where(x => !x.IsClass && !x.IsCollection && !x.Name.Equals(item.GroupBy)).ToList())
                     {
                         var property = propertyTemplate.Replace("${PROPERTY_NAME}", member.Name);
                         property = property.Replace("${CLASS_NAME}", $"{item.Name}");
@@ -257,7 +257,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                     childResult = childResult.Replace("${CHILD_GROUPING}", string.Empty);
                 }
 
-                if (item.IsArray)
+                if (item.IsCollection)
                 {
                     childResult = childResult.Replace("${GROUPING_TYPE}", "ToList()");
                 }
@@ -303,7 +303,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             foreach (var member in members)
             {
-                if (member.IsArray)
+                if (member.IsCollection)
                 {
                     sb.Append($"public List<{member.Type}> {member.Name} {{ get; set; }}");
                     sb.AppendLine();

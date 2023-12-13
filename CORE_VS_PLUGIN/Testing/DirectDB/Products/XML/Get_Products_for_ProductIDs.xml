@@ -72,21 +72,21 @@
 	<Parameter ClassName="P_MEI_PR_GPfPIDs_1440">
 		<ClassMember Name="IsUseIDs" Type="bool" />
 		<ClassMember Name="IsUseUIDs" Type="bool" />
-		<ClassMember Name="ProductIDs" Type="Guid" IsArray="true" />
+		<ClassMember Name="ProductIDs" Type="Guid" IsCollection="true" />
 	</Parameter>
 
 	<Result Returns_just_the_status_of_the_operation="false"
 				  Returns_a_StandardDataType_or_StadardDataTypeArray="false"
 				  Returns_an_Object_or_ObjectArray="true">
 
-		<ResultClass Name="MEI_PR_GPfPIDs_1440" IsArray="true" GroupBy="CMN_PRO_ProductID">
+		<ResultClass Name="MEI_PR_GPfPIDs_1440" IsCollection="true" GroupBy="CMN_PRO_ProductID">
 			<ClassMember Name="CMN_PRO_ProductID" Type="Guid"  />
 			<ClassMember Name="Product_UID" Type="Guid"  />
 			<ClassMember Name="Product_Number" Type="string"  />
 			<ClassMember Name="Document_RefID" Type="Guid"  />
 			<ClassMember Name="CutRevision_RefID" Type="Guid"  />
 
-			<ClassMember Name="Variants" Type="MEI_PR_GPfPIDs_1440_Variant" IsClass="true" IsArray="true" GroupBy="CMN_PRO_Product_VariantID">
+			<ClassMember Name="Variants" Type="MEI_PR_GPfPIDs_1440_Variant" IsClass="true" IsCollection="true" GroupBy="CMN_PRO_Product_VariantID">
 				<ClassMember Name="CMN_PRO_Product_VariantID" Type="Guid"  />
 				<ClassMember Name="IsStandardProductVariant" Type="bool"  />
 				<ClassMember Name="IsBlockedForOrdering" Type="bool"  />
@@ -97,12 +97,12 @@
 				<ClassMember Name="OrderSequenceNumber" Type="int"  />
 			</ClassMember>
 
-			<ClassMember Name="Customizations" Type="MEI_PR_GPfPIDs_1440_Customization" IsClass="true" IsArray="true" GroupBy="CMN_PRO_CUS_CustomizationID">
+			<ClassMember Name="Customizations" Type="MEI_PR_GPfPIDs_1440_Customization" IsClass="true" IsCollection="true" GroupBy="CMN_PRO_CUS_CustomizationID">
 				<ClassMember Name="CMN_PRO_CUS_CustomizationID" Type="Guid"  />
 				<ClassMember Name="C_OrderSequence" Type="int"  />
 
 
-				<ClassMember Name="CustomizationVariants" Type="MEI_PR_GPfPIDs_1440_CustomizationVariant" IsClass="true" IsArray="true" GroupBy="CMN_PRO_CUS_Customization_VariantID">
+				<ClassMember Name="CustomizationVariants" Type="MEI_PR_GPfPIDs_1440_CustomizationVariant" IsClass="true" IsCollection="true" GroupBy="CMN_PRO_CUS_Customization_VariantID">
 					<ClassMember Name="CMN_PRO_CUS_Customization_VariantID" Type="Guid"  />
 					<ClassMember Name="CVariant_OrderSequence" Type="int"  />
 				</ClassMember>

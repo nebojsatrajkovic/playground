@@ -58,8 +58,8 @@ public class CORE_DB_QUERY_XML_ResultClass
     [XmlAttribute(AttributeName = "Name")]
     public string Name { get; set; }
 
-    [XmlAttribute(AttributeName = "IsArray")]
-    public bool IsArray { get; set; }
+    [XmlAttribute(AttributeName = "IsCollection")]
+    public bool IsCollection { get; set; }
 
     [XmlAttribute(AttributeName = "GroupBy")]
     public string GroupBy { get; set; }
@@ -102,8 +102,8 @@ public class CORE_DB_QUERY_XML_ClassMember
     [XmlAttribute(AttributeName = "Type")]
     public string Type { get; set; }
 
-    [XmlAttribute(AttributeName = "IsArray")]
-    public bool IsArray { get; set; }
+    [XmlAttribute(AttributeName = "IsCollection")]
+    public bool IsCollection { get; set; }
 
     [XmlElement(ElementName = "ClassMember")]
     public List<CORE_DB_QUERY_XML_ClassMember> ClassMembers { get; set; }

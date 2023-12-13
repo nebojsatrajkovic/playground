@@ -108,11 +108,11 @@
 				  Returns_a_StandardDataType_or_StadardDataTypeArray="false"
 				  Returns_an_Object_or_ObjectArray="true">
 
-		<ResultClass Name="BPT_BP_GBPID_1114" IsArray="false" GroupBy="CMN_BPT_BusinessParticipantID">
+		<ResultClass Name="BPT_BP_GBPID_1114" IsCollection="false" GroupBy="CMN_BPT_BusinessParticipantID">
 
 			<ClassMember Name="CMN_BPT_BusinessParticipantID" Type="Guid" />
 
-			<ClassMember Name="IntertenantRoles" Type="BPT_BP_GBPID_1114_IntertenantRole" IsClass="true" IsArray="true" GroupBy="BOP_InterIdentityRelation_Role_AssignmentID">
+			<ClassMember Name="IntertenantRoles" Type="BPT_BP_GBPID_1114_IntertenantRole" IsClass="true" IsCollection="true" GroupBy="BOP_InterIdentityRelation_Role_AssignmentID">
 				<ClassMember Name="BOP_NetworkRoleID" Type="Guid" />
 				<ClassMember Name="NetworkRole_GID" Type="Guid" />
 				<ClassMember Name="Relation_Role_Name" Type="string" />
@@ -127,12 +127,12 @@
 				<ClassMember Name="Relation_Role_Assignment_Status_GID" Type="Guid" />
 				<ClassMember Name="Relation_Role_Assignment_Status_Name" Type="string" />
 
-				<ClassMember Name="TrustLevels" Type="BPT_BP_GBPID_1114_TrustLevel" IsClass="true" IsArray="true" GroupBy="BOP_Relation_Roles_TrustLevelID">
+				<ClassMember Name="TrustLevels" Type="BPT_BP_GBPID_1114_TrustLevel" IsClass="true" IsCollection="true" GroupBy="BOP_Relation_Roles_TrustLevelID">
 					<ClassMember Name="BOP_Relation_Roles_TrustLevelID" Type="Guid" />
 					<ClassMember Name="Relation_Roles_TrustLevel_GID" Type="Guid" />
 					<ClassMember Name="Relation_Roles_TrustLevel_Title" Type="string" />
 
-					<ClassMember Name="TrustLevel_SharedWarehouses" Type="BPT_BP_GBPID_1114_TrustLevel_SharedWarehouse" IsClass="true" IsArray="true" GroupBy="LOG_WRH_WarehouseID">
+					<ClassMember Name="TrustLevel_SharedWarehouses" Type="BPT_BP_GBPID_1114_TrustLevel_SharedWarehouse" IsClass="true" IsCollection="true" GroupBy="LOG_WRH_WarehouseID">
 						<ClassMember Name="LOG_WRH_WarehouseID" Type="Guid" />
 						<ClassMember Name="CoordinateCode" Type="string" />
 						<ClassMember Name="Warehouse_Name" Type="string" />
@@ -142,7 +142,7 @@
 				</ClassMember>
 			</ClassMember>
 
-			<ClassMember Name="InternalRoles" Type="BPT_BP_GBPID_1114_InternalRole" IsClass="true" IsArray="true" GroupBy="InternalNetworkRoleID">
+			<ClassMember Name="InternalRoles" Type="BPT_BP_GBPID_1114_InternalRole" IsClass="true" IsCollection="true" GroupBy="InternalNetworkRoleID">
 				<ClassMember Name="InternalNetworkRoleID" Type="Guid" />
 				<ClassMember Name="Role_Name" Type="string" />
 			</ClassMember>
