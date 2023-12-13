@@ -65,6 +65,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CORE_VS_PLUGINPackage.cs" />
+    <Compile Include="Testing\DirectDB\Products\Get_BusinessParticipant_IntegrationData.cs" />
     <Compile Include="Utils\CORE_VS_PLUGIN_HELPER.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -130,9 +131,10 @@
     <EmbeddedResource Include="GENERATOR\Templates\Query\RawConverter\DB_QUERY_RAW_CONVERTER_CHILD.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="GENERATOR\Templates\Query\RawConverter\DB_QUERY_RAW_CONVERTER_ROOT_PROPERTY.txt">
+    <EmbeddedResource Include="GENERATOR\Templates\Query\RawConverter\DB_QUERY_RAW_CONVERTER_PROPERTY.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <Content Include="Testing\DirectDB\Products\XML\Get_BusinessParticipant_IntegrationData.xml" />
     <Content Include="Testing\DirectDB\Products\XML\Get_Products_for_ProductIDs.xml" />
     <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_TEMPLATE.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

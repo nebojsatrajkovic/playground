@@ -13,4 +13,4 @@
 
 		${CHILD_GROUPING}
 	}
-).ToList()
+).${GROUPING_TYPE}

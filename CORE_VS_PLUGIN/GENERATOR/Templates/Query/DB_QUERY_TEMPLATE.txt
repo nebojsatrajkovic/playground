@@ -10,7 +10,7 @@ namespace ${NAMESPACE}
 {
 	public class ${CLASS_NAME}
 	{
-		public List<${RESULT_TYPE}> Invoke(DbConnection connection, DbTransaction transaction, ${PARAMETER_TYPE} parameter)
+		public ${RETURN_TYPE} Invoke(DbConnection connection, DbTransaction transaction, ${PARAMETER_TYPE} parameter)
 		{
 			var command = connection.CreateCommand();
             command.Connection = connection;
@@ -45,7 +45,7 @@ namespace ${NAMESPACE}
                 throw;
 			}
 
-			var result = ${RESULT_TYPE}_raw.Convert(results).ToList();
+			var result = ${RESULT_TYPE}_raw.Convert(results).${RESULT_GROUPING_TYPE};
 
             return result;
 		}

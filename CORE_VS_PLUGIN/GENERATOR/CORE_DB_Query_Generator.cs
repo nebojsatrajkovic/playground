@@ -66,6 +66,9 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                     classTemplate = classTemplate.Replace("${CUSTOM_CLASSES}", combinedString);
                 }
+
+                classTemplate = classTemplate.Replace("${RESULT_GROUPING_TYPE}", xmlTemplate.Result.ResultClass.IsArray ? "ToList()" : "FirstOrDefault()");
+                classTemplate = classTemplate.Replace("${RETURN_TYPE}", xmlTemplate.Result.ResultClass.IsArray ? $"List<{xmlTemplate.Result.ResultClass.Name}>" : xmlTemplate.Result.ResultClass.Name);
             }
 
             // raw converter
@@ -147,10 +150,10 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 rootTemplate = reader.ReadToEnd();
             }
 
-            string rootPropertyTemplate;
-            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.RawConverter.DB_QUERY_RAW_CONVERTER_ROOT_PROPERTY.txt")))
+            string propertyTemplate;
+            using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.RawConverter.DB_QUERY_RAW_CONVERTER_PROPERTY.txt")))
             {
-                rootPropertyTemplate = reader.ReadToEnd();
+                propertyTemplate = reader.ReadToEnd();
             }
 
             string childTemplate;
@@ -172,7 +175,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 {
                     if (!item.IsClass && !item.IsArray)
                     {
-                        var property = rootPropertyTemplate.Replace("${PROPERTY_NAME}", item.Name);
+                        var property = propertyTemplate.Replace("${PROPERTY_NAME}", item.Name);
                         property = property.Replace("${CLASS_NAME}", resultClass.Name);
 
                         sb.Append(property);
@@ -182,15 +185,13 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                 result = result.Replace("${PROPERTIES}", sb.ToString());
 
-                // TODO if any of the properties are classes or arrays -> add them
-
                 if (resultClass.ClassMember.Any(x => x.IsClass))
                 {
                     var gfunct_Name = $"gfunct_{resultClass.Name}";
 
                     var members = resultClass.ClassMember.Where(x => x.IsClass && !string.IsNullOrEmpty(x.GroupBy)).ToList();
 
-                    var a = GetChildrenGroupingConverter(gfunct_Name, members, childTemplate, rootPropertyTemplate);
+                    var a = GetChildrenGroupingConverter(gfunct_Name, members, childTemplate, propertyTemplate);
 
                     result = result.Replace("${CHILD_GROUPING}", a);
                 }
@@ -220,8 +221,6 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 childResult = childResult.Replace("${CLASS_NAME}", item.Type);
                 childResult = childResult.Replace("${ELEMENT_NAME}", $"el_{item.Name}");
                 childResult = childResult.Replace("{GFUNCT_NAME}", $"{gfunct_Name}");
-
-                // ${PROPERTIES}
 
                 if (item.ClassMembers?.Any() == true && item.ClassMembers.Any(x => !x.IsClass && !x.IsArray && !x.Name.Equals(item.GroupBy)))
                 {
@@ -260,11 +259,11 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                 if (item.IsArray)
                 {
-
+                    childResult = childResult.Replace("${GROUPING_TYPE}", "ToList()");
                 }
                 else
                 {
-
+                    childResult = childResult.Replace("${GROUPING_TYPE}", "FirstOrDefault()");
                 }
 
                 resultSB.Append(childResult);

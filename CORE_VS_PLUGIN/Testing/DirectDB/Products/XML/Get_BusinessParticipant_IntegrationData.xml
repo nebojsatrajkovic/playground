@@ -100,68 +100,54 @@
 		cmn_bpt_businessparticipants.CMN_BPT_BusinessParticipantID = @ID
 	</SQL>
 
-	<Parameters IsClass="true" Name="P_BPT_BP_GBPID_1114">
-		<Members>
-			<ClassMember Name="ID" Type="Guid" />
-		</Members>
-	</Parameters>
+	<Parameter ClassName="P_BPT_BP_GBPID_1114">
+		<ClassMember Name="ID" Type="Guid" />
+	</Parameter>
 
 	<Result Returns_just_the_status_of_the_operation="false"
 				  Returns_a_StandardDataType_or_StadardDataTypeArray="false"
 				  Returns_an_Object_or_ObjectArray="true">
 
 		<ResultClass Name="BPT_BP_GBPID_1114" IsArray="false" GroupBy="CMN_BPT_BusinessParticipantID">
-			<Members>
 
-				<ClassMember Name="CMN_BPT_BusinessParticipantID" Type="Guid" />
+			<ClassMember Name="CMN_BPT_BusinessParticipantID" Type="Guid" />
 
-				<ClassMember Name="IntertenantRoles" Type="BPT_BP_GBPID_1114_IntertenantRole" IsClass="true" IsArray="true" GroupBy="BOP_InterIdentityRelation_Role_AssignmentID">
-					<Members>
-						<ClassMember Name="BOP_NetworkRoleID" Type="Guid" />
-						<ClassMember Name="NetworkRole_GID" Type="Guid" />
-						<ClassMember Name="Relation_Role_Name" OriginTable="bop_networkroles" Source_DBField="NetworkRole_Name_DictID" Type="Dict" />
+			<ClassMember Name="IntertenantRoles" Type="BPT_BP_GBPID_1114_IntertenantRole" IsClass="true" IsArray="true" GroupBy="BOP_InterIdentityRelation_Role_AssignmentID">
+				<ClassMember Name="BOP_NetworkRoleID" Type="Guid" />
+				<ClassMember Name="NetworkRole_GID" Type="Guid" />
+				<ClassMember Name="Relation_Role_Name" Type="string" />
 
-						<ClassMember Name="BOP_InterIdentityRelationTypeID" Type="Guid" />
-						<ClassMember Name="Relation_Type_Title" OriginTable="bop_interidentityrelations_types" Source_DBField="InterIdentityRelations_Type_Title_DictID" Type="Dict" />
+				<ClassMember Name="BOP_InterIdentityRelationTypeID" Type="Guid" />
+				<ClassMember Name="Relation_Type_Title" Type="string" />
 
-						<ClassMember Name="BOP_InterIdentityRelationID" Type="Guid" />
-						<ClassMember Name="BOP_InterIdentityRelation_Role_AssignmentID" Type="Guid" />
+				<ClassMember Name="BOP_InterIdentityRelationID" Type="Guid" />
+				<ClassMember Name="BOP_InterIdentityRelation_Role_AssignmentID" Type="Guid" />
 
-						<ClassMember Name="BOP_InterIdentityRelation_Role_Assignment_StatusID" Type="Guid" />
-						<ClassMember Name="Relation_Role_Assignment_Status_GID" Type="Guid" />
-						<ClassMember Name="Relation_Role_Assignment_Status_Name" OriginTable="bop_interidentityrelation_role_assignment_status" Source_DBField="Relation_Role_Assignment_Status_Name_DictID" Type="Dict" />
+				<ClassMember Name="BOP_InterIdentityRelation_Role_Assignment_StatusID" Type="Guid" />
+				<ClassMember Name="Relation_Role_Assignment_Status_GID" Type="Guid" />
+				<ClassMember Name="Relation_Role_Assignment_Status_Name" Type="string" />
 
-						<ClassMember Name="TrustLevels" Type="BPT_BP_GBPID_1114_TrustLevel" IsClass="true" IsArray="true" GroupBy="BOP_Relation_Roles_TrustLevelID">
-							<Members>
-								<ClassMember Name="BOP_Relation_Roles_TrustLevelID" Type="Guid" />
-								<ClassMember Name="Relation_Roles_TrustLevel_GID" Type="Guid" />
-								<ClassMember Name="Relation_Roles_TrustLevel_Title" OriginTable="bop_relation_roles_trustlevels" Source_DBField="Relation_Roles_TrustLevel_Title_DictID" Type="Dict" />
+				<ClassMember Name="TrustLevels" Type="BPT_BP_GBPID_1114_TrustLevel" IsClass="true" IsArray="true" GroupBy="BOP_Relation_Roles_TrustLevelID">
+					<ClassMember Name="BOP_Relation_Roles_TrustLevelID" Type="Guid" />
+					<ClassMember Name="Relation_Roles_TrustLevel_GID" Type="Guid" />
+					<ClassMember Name="Relation_Roles_TrustLevel_Title" Type="string" />
 
-								<ClassMember Name="TrustLevel_SharedWarehouses" Type="BPT_BP_GBPID_1114_TrustLevel_SharedWarehouse" IsClass="true" IsArray="true" GroupBy="LOG_WRH_WarehouseID">
-									<Members>
-										<ClassMember Name="LOG_WRH_WarehouseID" Type="Guid" />
-										<ClassMember Name="CoordinateCode" Type="string" />
-										<ClassMember Name="Warehouse_Name" Type="string" />
-										<ClassMember Name="TransferCustomerOwnedStockInformation" Type="bool" />
-										<ClassMember Name="TransferSelfOwnedStockInformation" Type="bool" />
-									</Members>
-								</ClassMember>
-							</Members>
-						</ClassMember>
-					</Members>
+					<ClassMember Name="TrustLevel_SharedWarehouses" Type="BPT_BP_GBPID_1114_TrustLevel_SharedWarehouse" IsClass="true" IsArray="true" GroupBy="LOG_WRH_WarehouseID">
+						<ClassMember Name="LOG_WRH_WarehouseID" Type="Guid" />
+						<ClassMember Name="CoordinateCode" Type="string" />
+						<ClassMember Name="Warehouse_Name" Type="string" />
+						<ClassMember Name="TransferCustomerOwnedStockInformation" Type="bool" />
+						<ClassMember Name="TransferSelfOwnedStockInformation" Type="bool" />
+					</ClassMember>
 				</ClassMember>
+			</ClassMember>
 
-				<ClassMember Name="InternalRoles" Type="BPT_BP_GBPID_1114_InternalRole" IsClass="true" IsArray="true" GroupBy="InternalNetworkRoleID">
-					<Members>
-						<ClassMember Name="InternalNetworkRoleID" Type="Guid" />
-						<ClassMember Name="Role_Name" OriginTable="bop_networkroles" Source_DBField="InternalNetworkRole_NameDictID" Type="Dict" />
-					</Members>
-				</ClassMember>
-			</Members>
+			<ClassMember Name="InternalRoles" Type="BPT_BP_GBPID_1114_InternalRole" IsClass="true" IsArray="true" GroupBy="InternalNetworkRoleID">
+				<ClassMember Name="InternalNetworkRoleID" Type="Guid" />
+				<ClassMember Name="Role_Name" Type="string" />
+			</ClassMember>
 		</ResultClass>
 
 	</Result>
 
 </Template>
-
-
