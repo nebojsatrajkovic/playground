@@ -22,14 +22,14 @@ namespace ${NAMESPACE}
 
 			// TODO set parameters
 
-			var results = new List<${RESULT_TYPE}_raw>();
+			var results = new List<${RESULT_TYPE}_Raw>();
             var reader = command.ExecuteReader();
 
 			try
 			{
 				while (reader.Read())
 				{
-					var resultItem = new ${RESULT_TYPE}_raw();
+					var resultItem = new ${RESULT_TYPE}_Raw();
 
 
 
@@ -45,7 +45,7 @@ namespace ${NAMESPACE}
                 throw;
 			}
 
-			var result = ${RESULT_TYPE}_raw.Convert(results).${RESULT_GROUPING_TYPE};
+			${RETURN_PLACEHOLDER}
 
             return result;
 		}

@@ -1,4 +1,4 @@
-﻿public static List<${CLASS_NAME}> Convert(List<${CLASS_NAME}_raw> rawResult)
+﻿public static List<${CLASS_NAME}> Convert(List<${CLASS_NAME}_Raw> rawResult)
 {
 	var groupResult = from ${ELEMENT_NAME} in rawResult.Where(element => !EqualsDefaultValue(element.${GROUPING_KEY})).ToList()
 		group ${ELEMENT_NAME} by new

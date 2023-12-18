@@ -50,13 +50,11 @@ namespace CORE_VS_PLUGIN.GENERATOR
             {
                 classTemplate = classTemplate.Replace("${NAMESPACE}", xmlTemplate.Meta.MethodNamespace);
                 classTemplate = classTemplate.Replace("${CLASS_NAME}", xmlTemplate.Meta.MethodClassName);
-                classTemplate = classTemplate.Replace("${RESULT_TYPE}", xmlTemplate.Result.ResultClass.Name);
                 classTemplate = classTemplate.Replace("${PARAMETER_TYPE}", xmlTemplate.Parameter.ClassName);
                 classTemplate = classTemplate.Replace("${COMMAND_LOCATION}", commandLocation);
             }
 
             // classes
-
             {
                 var customClasses = GenerateClasses(xmlTemplate);
 
@@ -67,13 +65,23 @@ namespace CORE_VS_PLUGIN.GENERATOR
                     classTemplate = classTemplate.Replace("${CUSTOM_CLASSES}", combinedString);
                 }
 
-                classTemplate = classTemplate.Replace("${RESULT_GROUPING_TYPE}", xmlTemplate.Result.ResultClass.IsCollection ? "ToList()" : "FirstOrDefault()");
-                classTemplate = classTemplate.Replace("${RETURN_TYPE}", xmlTemplate.Result.ResultClass.IsCollection ? $"List<{xmlTemplate.Result.ResultClass.Name}>" : xmlTemplate.Result.ResultClass.Name);
-            }
+                // if we have grouping then we will evaluate the result class definition and transform results accordingly
+                if (!string.IsNullOrEmpty(xmlTemplate?.Result?.ResultClass?.GroupBy))
+                {
+                    classTemplate = classTemplate.Replace("${RETURN_PLACEHOLDER}", "var result = ${RESULT_TYPE}_Raw.Convert(results).${RESULT_GROUPING_TYPE};");
 
-            // raw converter
-            {
+                    classTemplate = classTemplate.Replace("${RESULT_TYPE}", xmlTemplate.Result.ResultClass.Name);
+                    classTemplate = classTemplate.Replace("${RESULT_GROUPING_TYPE}", xmlTemplate.Result.ResultClass.IsCollection ? "ToList()" : "FirstOrDefault()");
+                    classTemplate = classTemplate.Replace("${RETURN_TYPE}", xmlTemplate.Result.ResultClass.IsCollection ? $"List<{xmlTemplate.Result.ResultClass.Name}>" : xmlTemplate.Result.ResultClass.Name);
+                }
+                // if we don't use any data grouping then we should return raw data as it is retrieved from the database
+                else
+                {
+                    classTemplate = classTemplate.Replace("${RESULT_TYPE}", $"{xmlTemplate.Result.ResultClass.Name}_Raw");
+                    classTemplate = classTemplate.Replace("${RETURN_TYPE}", $"List<{xmlTemplate.Result.ResultClass.Name}_Raw>");
 
+                    classTemplate = classTemplate.Replace("${RETURN_PLACEHOLDER}", "var result = results;");
+                }
             }
 
             var classFilePath = $"{containingFolder}\\{xmlTemplate.Meta.MethodClassName}.cs";
@@ -121,7 +129,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsCollection).ToList();
 
-            var rawClassTemplate = GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_raw", rawClassProperties, true).First();
+            var rawClassTemplate = GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_Raw", rawClassProperties, true).First();
 
             rawClassTemplate = rawClassTemplate.Replace("${CONVERT_METHOD}", RawDataConverterGenerator(xmlTemplate));
 
@@ -142,7 +150,14 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
         public static string RawDataConverterGenerator(CORE_DB_QUERY_XML_Template xmlTemplate)
         {
-            string result;
+            var result = string.Empty;
+
+            var resultClass = xmlTemplate.Result.ResultClass;
+
+            if (string.IsNullOrEmpty(resultClass.GroupBy))
+            {
+                return result;
+            }
 
             string rootTemplate;
             using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.RawConverter.DB_QUERY_RAW_CONVERTER_ROOT.txt")))
@@ -162,49 +177,38 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 childTemplate = reader.ReadToEnd();
             }
 
-            var resultClass = xmlTemplate.Result.ResultClass;
+            result = rootTemplate.Replace("${CLASS_NAME}", resultClass.Name);
+            result = result.Replace("${GROUPING_KEY}", resultClass.GroupBy);
+            result = result.Replace("${ELEMENT_NAME}", $"el_{resultClass.Name}");
 
-            if (!string.IsNullOrEmpty(resultClass.GroupBy))
+            var sb = new StringBuilder();
+            foreach (var item in resultClass.ClassMember.Where(x => !x.Name.Equals(resultClass.GroupBy)).ToList())
             {
-                result = rootTemplate.Replace("${CLASS_NAME}", resultClass.Name);
-                result = result.Replace("${GROUPING_KEY}", resultClass.GroupBy);
-                result = result.Replace("${ELEMENT_NAME}", $"el_{resultClass.Name}");
-
-                var sb = new StringBuilder();
-                foreach (var item in resultClass.ClassMember.Where(x => !x.Name.Equals(resultClass.GroupBy)).ToList())
+                if (!item.IsClass && !item.IsCollection)
                 {
-                    if (!item.IsClass && !item.IsCollection)
-                    {
-                        var property = propertyTemplate.Replace("${PROPERTY_NAME}", item.Name);
-                        property = property.Replace("${CLASS_NAME}", resultClass.Name);
+                    var property = propertyTemplate.Replace("${PROPERTY_NAME}", item.Name);
+                    property = property.Replace("${CLASS_NAME}", resultClass.Name);
 
-                        sb.Append(property);
-                        sb.AppendLine();
-                    }
+                    sb.Append(property);
+                    sb.AppendLine();
                 }
+            }
 
-                result = result.Replace("${PROPERTIES}", sb.ToString());
+            result = result.Replace("${PROPERTIES}", sb.ToString());
 
-                if (resultClass.ClassMember.Any(x => x.IsClass))
-                {
-                    var gfunct_Name = $"gfunct_{resultClass.Name}";
+            if (resultClass.ClassMember.Any(x => x.IsClass))
+            {
+                var gfunct_Name = $"gfunct_{resultClass.Name}";
 
-                    var members = resultClass.ClassMember.Where(x => x.IsClass && !string.IsNullOrEmpty(x.GroupBy)).ToList();
+                var members = resultClass.ClassMember.Where(x => x.IsClass && !string.IsNullOrEmpty(x.GroupBy)).ToList();
 
-                    var a = GetChildrenGroupingConverter(gfunct_Name, members, childTemplate, propertyTemplate);
+                var a = GetChildrenGroupingConverter(gfunct_Name, members, childTemplate, propertyTemplate);
 
-                    result = result.Replace("${CHILD_GROUPING}", a);
-                }
-                else
-                {
-                    result = result.Replace("${CHILD_GROUPING}", string.Empty);
-                }
+                result = result.Replace("${CHILD_GROUPING}", a);
             }
             else
             {
-                // TODO just return raw class as a result
-
-                result = string.Empty;
+                result = result.Replace("${CHILD_GROUPING}", string.Empty);
             }
 
             return result;
