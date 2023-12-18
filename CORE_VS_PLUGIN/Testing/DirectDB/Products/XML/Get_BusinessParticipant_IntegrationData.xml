@@ -2,25 +2,7 @@
 <Template>
 
 	<Meta Method_Namespace="zugseilmeasuringinbll.Operation.DirectDB.Products" Method_ClassName="Get_BusinessParticipant_IntegrationData" />
-
-	<PlattformInfo  Target_Method_ProgrammingLanguage="C#"
-					Target_Method_ProgrammingLanguage_Revision="3.5"
-					Target_SQL="MySQL"
-					Target_SQL_Revision="8"
-					Create_Webservice_Interface="true"
-					Create_Webservice_Interface_ServerPlattform="C#"
-					Create_Webservice_Interface_ServerPlattform_Revision="3.5"
-					Create_Webservice_Interface_ApplicationPlattform="FLEX"
-					Create_Webservice_Interface_ApplicationPlattform_Revision="4.5"
-                  />
-
-	<CreationInfo Method_Namespace="zugseilbusinessparticipantsbll.Operation.DirectDB.BusinessParticipants"
-				  Method_ClassName="cls_Get_BusinessParticipant_IntegrationData"
-				  Method_Name="Get_BusinessParticipant_IntegrationData"
-				  ApplicationPlattform_WebServiceName=""
-				  ApplicationPlattform_Namespace=".Get_BusinessParticipant_IntegrationData"
-                />
-
+	
 	<SQL>
 		Select
 		cmn_bpt_businessparticipants.CMN_BPT_BusinessParticipantID,
