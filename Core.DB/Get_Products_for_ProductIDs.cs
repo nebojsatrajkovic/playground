@@ -36,6 +36,7 @@ namespace Core.DB
                     var resultItem = new MEI_PR_GPfPIDs_1440_raw();
 
                     resultItem.CMN_PRO_ProductID = reader.IsDBNull("CMN_PRO_ProductID") ? default : reader.GetGuid("CMN_PRO_ProductID");
+
                     resultItem.Product_UID = reader.IsDBNull("Product_UID") ? default : reader.GetGuid("Product_UID");
                     resultItem.Product_Number = reader.IsDBNull("Product_Number") ? default : reader.GetString("Product_Number");
                     resultItem.Document_RefID = reader.IsDBNull("Document_RefID") ? default : reader.GetGuid("Document_RefID");

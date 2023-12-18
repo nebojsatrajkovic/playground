@@ -31,7 +31,7 @@ namespace ${NAMESPACE}
 				{
 					var resultItem = new ${RESULT_TYPE}_Raw();
 
-
+					${READER_ITEMS}
 
 					results.Add(resultItem);
 				}

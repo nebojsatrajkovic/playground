@@ -133,6 +133,9 @@
     <EmbeddedResource Include="GENERATOR\Templates\Query\RawConverter\DB_QUERY_RAW_CONVERTER_PROPERTY.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_READER_ITEM_TEMPLATE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <Content Include="Testing\DirectDB\Products\XML\Get_BusinessParticipant_IntegrationData.xml" />
     <Content Include="Testing\DirectDB\Products\XML\Get_Products_for_ProductIDs.xml" />
     <EmbeddedResource Include="GENERATOR\Templates\Query\DB_QUERY_TEMPLATE.txt">

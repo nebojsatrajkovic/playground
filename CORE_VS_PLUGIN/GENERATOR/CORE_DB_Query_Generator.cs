@@ -84,6 +84,30 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 }
             }
 
+            // data reader
+            {
+                string readerItemTemplate;
+                using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_READER_ITEM_TEMPLATE.txt")))
+                {
+                    readerItemTemplate = reader.ReadToEnd();
+                }
+
+                var rawProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsCollection).ToList();
+
+                var sb = new StringBuilder();
+
+                foreach (var property in rawProperties)
+                {
+                    var readerItem = readerItemTemplate.Replace("${PROPERTY_NAME}", property.Name);
+                    readerItem = readerItem.Replace("${READER_TYPE}", GetReaderType(property.Type));
+
+                    sb.Append(readerItem);
+                    sb.AppendLine();
+                }
+
+                classTemplate = classTemplate.Replace("${READER_ITEMS}", sb.ToString());
+            }
+
             var classFilePath = $"{containingFolder}\\{xmlTemplate.Meta.MethodClassName}.cs";
 
             File.WriteAllText(classFilePath, classTemplate.FormatCode());
@@ -330,6 +354,46 @@ namespace CORE_VS_PLUGIN.GENERATOR
             var root = tree.GetRoot().NormalizeWhitespace();
             var ret = root.ToFullString();
             return ret;
+        }
+
+        public static string GetReaderType(string type)
+        {
+            string returnValue;
+
+            switch (type.ToLower())
+            {
+                case "datetime": returnValue = "DateTime"; break;
+
+                case "char":
+                case "string": returnValue = "String"; break;
+
+                case "guid": returnValue = "Guid"; break;
+
+                case "float": returnValue = "Float"; break;
+                case "double": returnValue = "Double"; break;
+
+                case "ushort":
+                case "short": returnValue = "Int16"; break;
+
+                case "sbyte":
+                case "byte": returnValue = "Byte"; break;
+
+                case "ulong":
+                case "long": returnValue = "Int64"; break;
+
+                case "decimal": returnValue = "Decimal"; break;
+
+                case "uint":
+                case "int":
+                case "integer": returnValue = "Int32"; break;
+
+                case "boolean":
+                case "bool": returnValue = "Boolean"; break;
+
+                default: returnValue = type; break;
+            }
+
+            return returnValue;
         }
     }
 }
