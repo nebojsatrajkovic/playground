@@ -16,6 +16,11 @@ namespace Core.DB
             command.CommandText = new StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(commandLocation)).ReadToEnd();
             command.CommandTimeout = 60;
 
+            var dbParam = command.CreateParameter();
+            dbParam.ParameterName = "";
+            dbParam.Value = parameter.ProductIDs;
+            command.Parameters.Add(dbParam);
+
             if (parameter.ProductIDs != null && parameter.ProductIDs.Any())
             {
                 command.CommandText = System.Text.RegularExpressions.Regex.Replace(command.CommandText, "=[ \t]*@ProductIDs", " IN $$ProductIDs$$");

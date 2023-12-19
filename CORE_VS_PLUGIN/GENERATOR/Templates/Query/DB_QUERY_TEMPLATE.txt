@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.Common;
-using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace ${NAMESPACE}
@@ -20,7 +16,7 @@ namespace ${NAMESPACE}
             command.CommandText = new StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(commandLocation)).ReadToEnd();
             command.CommandTimeout = 60;
 
-			// TODO set parameters
+			${PARAMETERS_PLACEHOLDER}
 
 			var results = new List<${RESULT_TYPE}_Raw>();
             var reader = command.ExecuteReader();

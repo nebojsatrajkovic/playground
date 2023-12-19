@@ -108,6 +108,51 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 classTemplate = classTemplate.Replace("${READER_ITEMS}", sb.ToString());
             }
 
+            // parameters
+            {
+                if (xmlTemplate.Parameter?.ClassMember?.Any() == true)
+                {
+                    string parameterTemplate;
+                    using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_PARAMETER_TEMPLATE.txt")))
+                    {
+                        parameterTemplate = reader.ReadToEnd();
+                    }
+
+                    string parameterListTemplate;
+                    using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_PARAMETER_LIST_TEMPLATE.txt")))
+                    {
+                        parameterListTemplate = reader.ReadToEnd();
+                    }
+
+                    var sb = new StringBuilder();
+
+                    foreach (var parameter in xmlTemplate.Parameter.ClassMember)
+                    {
+                        if (parameter.IsCollection)
+                        {
+                            var parameterItem = parameterListTemplate.Replace("${COLLECTION_NAME}", $"parameter.{parameter.Name}");
+                            parameterItem = parameterItem.Replace("${PARAMETER_NAME}", $"@{parameter.Name}");
+
+                            sb.Append(parameterItem);
+                        }
+                        else
+                        {
+                            var parameterItem = parameterTemplate.Replace("${PARAMETER_REFERENCE_NAME}", $"_{parameter.Name}");
+                            parameterItem = parameterItem.Replace("${PARAMETER_NAME}", $"@{parameter.Name}");
+                            parameterItem = parameterItem.Replace("${PARAMETER_VALUE}", $"parameter.{parameter.Name}");
+
+                            sb.Append(parameterItem);
+                        }
+                    }
+
+                    classTemplate = classTemplate.Replace("${PARAMETERS_PLACEHOLDER}", sb.ToString());
+                }
+                else
+                {
+                    classTemplate = classTemplate.Replace("${PARAMETERS_PLACEHOLDER}", string.Empty);
+                }
+            }
+
             var classFilePath = $"{containingFolder}\\{xmlTemplate.Meta.MethodClassName}.cs";
 
             File.WriteAllText(classFilePath, classTemplate.FormatCode());
