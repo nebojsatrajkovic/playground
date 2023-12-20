@@ -1,7 +1,0 @@
-﻿for (int i = 0; i < ${COLLECTION_NAME}.Count; i++)
-{
-    DbParameter param = command.CreateParameter();
-    param.ParameterName = $"${PARAMETER_NAME}{i + 1}";
-    param.Value = ${COLLECTION_NAME}[i];
-    command.Parameters.Add(param);
-}

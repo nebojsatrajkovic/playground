@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+	<Meta Method_Namespace="CoreDB.Testing.Products" Method_ClassName="Get_Sports_EventDefaultUsage" />
+
+	<SQL>
+		SELECT
+		sport.id as sport_id,
+		sport.name as sport_name,
+		eventtype.id as eventtype_id,
+		eventtype.name as eventtype_name
+		FROM
+		sport
+		INNER JOIN eventpartdefaultusage on sport.id = eventpartdefaultusage.sportid
+		INNER JOIN eventtype ON eventpartdefaultusage.eventtypeid = eventtype.id
+		WHERE sport.id = Any(@IDs)
+	</SQL>
+
+	<Parameter ClassName="P_GSEDU_0123">
+		<ClassMember Name="IDs" Type="long" IsCollection="true" />
+	</Parameter>
+
+	<Result Returns_just_the_status_of_the_operation="false"
+				  Returns_a_StandardDataType_or_StadardDataTypeArray="false"
+				  Returns_an_Object_or_ObjectArray="true">
+
+		<ResultClass Name="GSEDU_0123" IsCollection="true" GroupBy="sport_id">
+			<ClassMember Name="sport_id" Type="long"  />
+			<ClassMember Name="sport_name" Type="string"  />
+			<ClassMember Name="eventtype_id" Type="long"  />
+			<ClassMember Name="eventtype_name" Type="string"  />
+		</ResultClass>
+	</Result>
+</Template>

@@ -43,6 +43,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
             var projectNameToken = pathTokens.First(x => x.Equals(project.Name));
             var index = pathTokens.IndexOf(projectNameToken);
             var commandLocationTokens = pathTokens.Skip(index).Take(pathTokens.Count - index).ToList();
+            commandLocationTokens.Add("SQL");
             commandLocationTokens.Add($"{xmlTemplate.Meta.MethodClassName}.sql");
             var commandLocation = string.Join(".", commandLocationTokens);
 
@@ -77,7 +78,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 // if we don't use any data grouping then we should return raw data as it is retrieved from the database
                 else
                 {
-                    classTemplate = classTemplate.Replace("${RESULT_TYPE}", $"{xmlTemplate.Result.ResultClass.Name}_Raw");
+                    classTemplate = classTemplate.Replace("${RESULT_TYPE}", $"{xmlTemplate.Result.ResultClass.Name}");
                     classTemplate = classTemplate.Replace("${RETURN_TYPE}", $"List<{xmlTemplate.Result.ResultClass.Name}_Raw>");
 
                     classTemplate = classTemplate.Replace("${RETURN_PLACEHOLDER}", "var result = results;");
@@ -118,31 +119,15 @@ namespace CORE_VS_PLUGIN.GENERATOR
                         parameterTemplate = reader.ReadToEnd();
                     }
 
-                    string parameterListTemplate;
-                    using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("CORE_VS_PLUGIN.GENERATOR.Templates.Query.DB_QUERY_PARAMETER_LIST_TEMPLATE.txt")))
-                    {
-                        parameterListTemplate = reader.ReadToEnd();
-                    }
-
                     var sb = new StringBuilder();
 
                     foreach (var parameter in xmlTemplate.Parameter.ClassMember)
                     {
-                        if (parameter.IsCollection)
-                        {
-                            var parameterItem = parameterListTemplate.Replace("${COLLECTION_NAME}", $"parameter.{parameter.Name}");
-                            parameterItem = parameterItem.Replace("${PARAMETER_NAME}", $"@{parameter.Name}");
+                        var parameterItem = parameterTemplate.Replace("${PARAMETER_REFERENCE_NAME}", $"_{parameter.Name}");
+                        parameterItem = parameterItem.Replace("${PARAMETER_NAME}", $"@{parameter.Name}");
+                        parameterItem = parameterItem.Replace("${PARAMETER_VALUE}", $"parameter.{parameter.Name}");
 
-                            sb.Append(parameterItem);
-                        }
-                        else
-                        {
-                            var parameterItem = parameterTemplate.Replace("${PARAMETER_REFERENCE_NAME}", $"_{parameter.Name}");
-                            parameterItem = parameterItem.Replace("${PARAMETER_NAME}", $"@{parameter.Name}");
-                            parameterItem = parameterItem.Replace("${PARAMETER_VALUE}", $"parameter.{parameter.Name}");
-
-                            sb.Append(parameterItem);
-                        }
+                        sb.Append(parameterItem);
                     }
 
                     classTemplate = classTemplate.Replace("${PARAMETERS_PLACEHOLDER}", sb.ToString());
@@ -198,7 +183,9 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsCollection).ToList();
 
-            var rawClassTemplate = GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_Raw", rawClassProperties, true).First();
+            var hasGrouping = !string.IsNullOrEmpty(xmlTemplate.Result.ResultClass.GroupBy);
+
+            var rawClassTemplate = GenerateClass($"{xmlTemplate.Result.ResultClass.Name}_Raw", rawClassProperties, hasGrouping).First();
 
             rawClassTemplate = rawClassTemplate.Replace("${CONVERT_METHOD}", RawDataConverterGenerator(xmlTemplate));
 

@@ -137,7 +137,7 @@ namespace CORE_VS_PLUGIN.Commands
                         ["Project_Path"] = selectedItem.ContainingProjectPath,
                         ["File_Path"] = selectedItem.SelectedFilePath
                     };
-
+                    
                     var content = File.ReadAllText(selectedItem.SelectedFilePath);
                     var serializer = new XmlSerializer(typeof(CORE_DB_QUERY_XML_Template));
 

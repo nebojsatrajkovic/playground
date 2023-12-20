@@ -6,7 +6,7 @@ namespace ${NAMESPACE}
 {
 	public class ${CLASS_NAME}
 	{
-		public ${RETURN_TYPE} Invoke(DbConnection connection, DbTransaction transaction, ${PARAMETER_TYPE} parameter)
+		public static ${RETURN_TYPE} Invoke(DbConnection connection, DbTransaction transaction, ${PARAMETER_TYPE} parameter)
 		{
 			var command = connection.CreateCommand();
             command.Connection = connection;
