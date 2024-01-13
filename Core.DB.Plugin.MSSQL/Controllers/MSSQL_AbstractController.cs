@@ -1,6 +1,7 @@
-﻿using Core.DB.Plugin.MSSQL.Database;
+﻿using CoreCore.DB.Plugin.Shared.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Data.SqlClient;
 
 namespace Core.DB.Plugin.MSSQL.Controllers
 {
@@ -45,7 +46,9 @@ namespace Core.DB.Plugin.MSSQL.Controllers
         {
             try
             {
-                using var dbConnection = new CORE_DB_Connection(connectionString);
+                using var connection = new SqlConnection(connectionString);
+
+                using var dbConnection = new CORE_DB_Connection(connection);
 
                 _DB_Connection = dbConnection;
                 _sessionToken = GetSessionToken();
@@ -72,7 +75,9 @@ namespace Core.DB.Plugin.MSSQL.Controllers
 
         private T _ExecuteCommitAction<T>(Func<T> action, bool authenticate)
         {
-            using var dbConnection = new CORE_DB_Connection(connectionString);
+            using var connection = new SqlConnection(connectionString);
+
+            using var dbConnection = new CORE_DB_Connection(connection);
 
             _DB_Connection = dbConnection;
             _sessionToken = GetSessionToken();

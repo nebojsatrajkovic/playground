@@ -1,23 +1,21 @@
-﻿using Npgsql;
-using System.Data;
+﻿using System.Data;
+using System.Data.Common;
 
-namespace Core.DB.Plugin.PostgreSQL.Database
+namespace CoreCore.DB.Plugin.Shared.Database
 {
     public class CORE_DB_Connection : IDisposable
     {
-        readonly NpgsqlConnection _Connection = null!;
-        NpgsqlTransaction _Transaction = null!;
+        readonly DbConnection _Connection = null!;
+        DbTransaction _Transaction = null!;
 
-        public NpgsqlConnection Connection => _Connection;
-        public NpgsqlTransaction Transaction => _Transaction;
+        public DbConnection Connection => _Connection;
+        public DbTransaction Transaction => _Transaction;
 
-        public CORE_DB_Connection(string connectionString)
+        public CORE_DB_Connection(DbConnection connection)
         {
-            var connection = new NpgsqlConnection(connectionString);
+            _Connection = connection;
 
             connection.Open();
-
-            _Connection = connection;
 
             _Transaction = connection.BeginTransaction();
         }

@@ -1,6 +1,7 @@
-﻿using Core.DB.Plugin.MySQL.Database;
+﻿using CoreCore.DB.Plugin.Shared.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 
 namespace Core.DB.Plugin.MySQL.Controllers
 {
@@ -45,7 +46,9 @@ namespace Core.DB.Plugin.MySQL.Controllers
         {
             try
             {
-                using var dbConnection = new CORE_DB_Connection(connectionString);
+                using var connection = new MySqlConnection(connectionString);
+
+                using var dbConnection = new CORE_DB_Connection(connection);
 
                 _DB_Connection = dbConnection;
                 _sessionToken = GetSessionToken();
@@ -72,7 +75,9 @@ namespace Core.DB.Plugin.MySQL.Controllers
 
         private T _ExecuteCommitAction<T>(Func<T> action, bool authenticate)
         {
-            using var dbConnection = new CORE_DB_Connection(connectionString);
+            using var connection = new MySqlConnection(connectionString);
+
+            using var dbConnection = new CORE_DB_Connection(connection);
 
             _DB_Connection = dbConnection;
             _sessionToken = GetSessionToken();

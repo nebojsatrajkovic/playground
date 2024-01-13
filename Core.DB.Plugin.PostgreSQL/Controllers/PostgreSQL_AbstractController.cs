@@ -1,6 +1,7 @@
-﻿using Core.DB.Plugin.PostgreSQL.Database;
+﻿using CoreCore.DB.Plugin.Shared.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Core.DB.Plugin.PostgreSQL.Controllers
 {
@@ -45,7 +46,9 @@ namespace Core.DB.Plugin.PostgreSQL.Controllers
         {
             try
             {
-                using var dbConnection = new CORE_DB_Connection(connectionString);
+                using var connection = new NpgsqlConnection(connectionString);
+
+                using var dbConnection = new CORE_DB_Connection(connection);
 
                 _DB_Connection = dbConnection;
                 _sessionToken = GetSessionToken();
@@ -72,7 +75,9 @@ namespace Core.DB.Plugin.PostgreSQL.Controllers
 
         private T _ExecuteCommitAction<T>(Func<T> action, bool authenticate)
         {
-            using var dbConnection = new CORE_DB_Connection(connectionString);
+            using var connection = new NpgsqlConnection(connectionString);
+
+            using var dbConnection = new CORE_DB_Connection(connection);
 
             _DB_Connection = dbConnection;
             _sessionToken = GetSessionToken();
