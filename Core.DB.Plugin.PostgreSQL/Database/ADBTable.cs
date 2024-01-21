@@ -32,8 +32,6 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
             try
             {
-                var property_AlreadySaved = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_AlreadySaved)));
-
                 while (reader.Read())
                 {
                     var item = new T1();
@@ -44,8 +42,6 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                     {
                         property.SetValue(item, reader[property.Name]);
                     }
-
-                    property_AlreadySaved?.SetValue(item, true);
 
                     result.Add(item);
                 }
@@ -191,17 +187,15 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
             var (columns, values) = GetColumnsAndValues(parameter);
+            var onDuplicateKeyStatement = OnDuplicateKeyStatement();
 
-            var queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values})";
+            var primaryKeyProperty = typeof(T1).GetProperties().First(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
+
+            var queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) ON CONFLICT ({primaryKeyProperty.Name}) DO UPDATE SET {onDuplicateKeyStatement}";
 
             using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
 
-            if (command.ExecuteNonQuery() > 0)
-            {
-                var property = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_AlreadySaved)));
-
-                property?.SetValue(parameter, true);
-            }
+            var result = command.ExecuteNonQuery();
 
             return parameter;
         }
@@ -273,6 +267,23 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             values = values[..^2];
 
             return (columns, values);
+        }
+
+        internal static string OnDuplicateKeyStatement()
+        {
+            var properties = typeof(T1).GetFilteredProperties();
+
+            var sb = new StringBuilder();
+
+            foreach (var property in properties)
+            {
+                sb.Append($"{property.Name} = excluded.{property.Name}");
+            }
+
+            var statement = sb.ToString();
+            statement = statement[..^2];
+
+            return statement;
         }
 
         internal static string GetWhereCondition(T2 parameter)

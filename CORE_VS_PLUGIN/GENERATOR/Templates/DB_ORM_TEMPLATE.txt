@@ -9,9 +9,6 @@ public static class ${TABLE_NAME}
     {
         [CORE_DB_SQL_PrimaryKey]
 ${MODEL_ATTRIBUTES}
-        [CORE_DB_SQL_Ignore]
-        [CORE_DB_SQL_AlreadySaved]
-        public bool IsAlreadySaved { get; set; }
     }
 
     public class Query

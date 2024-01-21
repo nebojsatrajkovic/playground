@@ -32,8 +32,6 @@ namespace Core.DB.Plugin.MSSQL.Database
 
             try
             {
-                var property_AlreadySaved = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_AlreadySaved)));
-
                 while (reader.Read())
                 {
                     var item = new T1();
@@ -44,8 +42,6 @@ namespace Core.DB.Plugin.MSSQL.Database
                     {
                         property.SetValue(item, reader[property.Name]);
                     }
-
-                    property_AlreadySaved?.SetValue(parameter, true);
 
                     result.Add(item);
                 }
@@ -188,20 +184,33 @@ namespace Core.DB.Plugin.MSSQL.Database
 
         #endregion hard delete
 
-        public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
+        /// <summary>
+        /// isUsingIdentityColumn specifies that MSSQL database is configured to automatically generate primary key values so they should be excluded from insert statement
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <param name="isUsingIdentityColumn"></param>
+        /// <returns></returns>
+        public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter, bool isUsingPrimaryKeyAutoIncrement = false)
         {
-            var (columns, values) = GetColumnsAndValues(parameter);
+            var usingStatement = GetUsingPartForMergeStatement(parameter);
+            var (matched, notmatchedcolumns, notmatchedvalues) = OnDuplicateKeyStatement(isUsingPrimaryKeyAutoIncrement);
 
-            var queryString = $"INSERT INTO [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] ({columns}) VALUES ({values})";
+            var primaryKeyProperty = typeof(T1).GetProperties().First(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
+
+            var queryString = $"MERGE INTO [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] AS target"
+                +
+                $" USING (SELECT {usingStatement}) as source"
+                +
+                $" ON target.[{primaryKeyProperty.Name}] = source.[{primaryKeyProperty.Name}]"
+                +
+                $" WHEN MATCHED THEN UPDATE SET {matched}"
+                +
+                $" WHEN NOT MATCHED THEN INSERT ({notmatchedcolumns}) VALUES ({notmatchedvalues});";
 
             using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
-            if (command.ExecuteNonQuery() > 0)
-            {
-                var property = parameter?.GetType().GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_AlreadySaved)));
-
-                property?.SetValue(parameter, true);
-            }
+            var result = command.ExecuteNonQuery();
 
             return parameter;
         }
@@ -235,7 +244,7 @@ namespace Core.DB.Plugin.MSSQL.Database
                         valueType == typeof(float) ||
                         valueType == typeof(decimal) ||
                         valueType == typeof(int)
-                        )
+                )
                 {
                     segment = $"{value}";
                 }
@@ -264,6 +273,94 @@ namespace Core.DB.Plugin.MSSQL.Database
             values = values[..^2];
 
             return (columns, values);
+        }
+
+        internal static string GetUsingPartForMergeStatement(T1 parameter)
+        {
+            var properties = typeof(T1).GetFilteredProperties();
+
+            var sb = new StringBuilder();
+
+            foreach (var property in properties)
+            {
+                var value = property.GetValue(parameter, null);
+
+                string segment;
+                if (value == null)
+                {
+                    sb.Append($"NULL as [{property.Name}], ");
+
+                    continue;
+                }
+
+                var valueType = value.GetType();
+
+                if
+                (
+                    valueType == typeof(double) ||
+                    valueType == typeof(float) ||
+                    valueType == typeof(decimal) ||
+                    valueType == typeof(int)
+                )
+                {
+                    segment = $"{value}";
+                }
+                else if (valueType == typeof(DateTime))
+                {
+                    segment = $"'{(DateTime)value:yyyy-MM-dd HH:mm:ss}'";
+                }
+                else if (valueType == typeof(bool))
+                {
+                    segment = (bool)value ? "1" : "0";
+                }
+                else
+                {
+                    segment = $"'{value}'";
+                }
+
+                sb.Append($"{segment} as [{property.Name}], ");
+            }
+
+            var result = sb.ToString();
+            result = result[..^2];
+
+            return result;
+        }
+
+        internal static (string matched, string notMatchedColumns, string notMatchedValues) OnDuplicateKeyStatement(bool isUsingPrimaryKeyAutoIncrement)
+        {
+            var properties = typeof(T1).GetFilteredProperties();
+
+            var sbMatched = new StringBuilder();
+            var sbNotMatchedColumns = new StringBuilder();
+            var sbNotMatchedValues = new StringBuilder();
+
+            foreach (var property in properties)
+            {
+                var isPrimaryKey = property.CustomAttributes.HasValue() && property.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey));
+
+                if (!isPrimaryKey)
+                {
+                    sbMatched.Append($"target.{property.Name} = source.{property.Name}, ");
+                }
+
+                if (!(isPrimaryKey && isUsingPrimaryKeyAutoIncrement) || !isPrimaryKey)
+                {
+                    sbNotMatchedColumns.Append($"{property.Name}, ");
+                    sbNotMatchedValues.Append($"source.{property.Name}, ");
+                }
+            }
+
+            var matched = sbMatched.ToString();
+            matched = matched[..^2];
+
+            var notMatchedColumns = sbNotMatchedColumns.ToString();
+            notMatchedColumns = notMatchedColumns[..^2];
+
+            var notMatchedValues = sbNotMatchedValues.ToString();
+            notMatchedValues = notMatchedValues[..^2];
+
+            return (matched, notMatchedColumns, notMatchedValues);
         }
 
         internal static string GetWhereCondition(T2 parameter)

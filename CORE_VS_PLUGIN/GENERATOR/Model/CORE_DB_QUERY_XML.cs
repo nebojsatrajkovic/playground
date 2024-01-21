@@ -126,13 +126,4 @@ public class CORE_DB_QUERY_XML_Result
 
     [XmlElement(ElementName = "ResultClass")]
     public CORE_DB_QUERY_XML_ResultClass ResultClass { get; set; }
-
-    [XmlAttribute(AttributeName = "Returns_just_the_status_of_the_operation")]
-    public bool ReturnsJustTheStatusOfTheOperation { get; set; }
-
-    [XmlAttribute(AttributeName = "Returns_a_StandardDataType_or_StadardDataTypeArray")]
-    public bool ReturnsAStandardDataTypeOrStadardDataTypeArray { get; set; }
-
-    [XmlAttribute(AttributeName = "Returns_an_Object_or_ObjectArray")]
-    public bool ReturnsAnObjectOrObjectArray { get; set; }
 }
