@@ -1,4 +1,4 @@
-﻿        public class ${CLASS_NAME}
+﻿        internal class ${CLASS_NAME}
         {
             ${PROPERTIES}
 
