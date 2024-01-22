@@ -1,5 +1,9 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ${NAMESPACE}
@@ -46,6 +50,8 @@ namespace ${NAMESPACE}
             return result;
 		}
 
-		${CUSTOM_CLASSES}
+		${RAW_CLASS}
 	}
+
+	${CUSTOM_CLASSES}
 }

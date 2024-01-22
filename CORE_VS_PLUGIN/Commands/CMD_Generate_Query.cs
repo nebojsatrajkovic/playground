@@ -1,13 +1,11 @@
 ﻿using CORE_VS_PLUGIN.GENERATOR;
 using EnvDTE;
 using EnvDTE80;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -96,8 +94,8 @@ namespace CORE_VS_PLUGIN.Commands
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-            var title = "CMD_Generate_Query";
+            var message = "Successfully generated code!";
+            var title = nameof(CORE_VS_PLUGIN);
             var messageType = OLEMSGICON.OLEMSGICON_INFO;
 
             var selectedItems = ((UIHierarchy)((DTE2)ServiceProvider.GetServiceAsync(typeof(DTE)).Result).Windows.Item("{3AE79031-E1BC-11D0-8F78-00A0C9110057}").Object).SelectedItems as object[];
@@ -137,7 +135,7 @@ namespace CORE_VS_PLUGIN.Commands
                         ["Project_Path"] = selectedItem.ContainingProjectPath,
                         ["File_Path"] = selectedItem.SelectedFilePath
                     };
-                    
+
                     var content = File.ReadAllText(selectedItem.SelectedFilePath);
                     var serializer = new XmlSerializer(typeof(CORE_DB_QUERY_XML_Template));
 

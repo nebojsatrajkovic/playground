@@ -57,13 +57,19 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             // classes
             {
-                var customClasses = GenerateClasses(xmlTemplate);
+                (string rawClassTemplate, List<string> customClasses) = GenerateClasses(xmlTemplate);
+
+                classTemplate = classTemplate.Replace("${RAW_CLASS}", rawClassTemplate ?? string.Empty);
 
                 if (customClasses?.Any() == true)
                 {
                     var combinedString = string.Join($"{Environment.NewLine}{Environment.NewLine}", customClasses);
 
                     classTemplate = classTemplate.Replace("${CUSTOM_CLASSES}", combinedString);
+                }
+                else
+                {
+                    classTemplate = classTemplate.Replace("${CUSTOM_CLASSES}", string.Empty);
                 }
 
                 // if we have grouping then we will evaluate the result class definition and transform results accordingly
@@ -177,9 +183,9 @@ namespace CORE_VS_PLUGIN.GENERATOR
             EmbeddedResource
         }
 
-        public static List<string> GenerateClasses(CORE_DB_QUERY_XML_Template xmlTemplate)
+        public static (string rawClassTemplate, List<string> customClasses) GenerateClasses(CORE_DB_QUERY_XML_Template xmlTemplate)
         {
-            var returnValue = new List<string>();
+            var customClasses = new List<string>();
 
             var rawClassProperties = xmlTemplate.Result.ResultClass.ClassMember.SelectMany(x => x.GetAllClassMembers()).Where(x => !x.IsClass && !x.IsCollection).ToList();
 
@@ -189,19 +195,17 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
             rawClassTemplate = rawClassTemplate.Replace("${CONVERT_METHOD}", RawDataConverterGenerator(xmlTemplate));
 
-            returnValue.Add(rawClassTemplate);
-
             if (xmlTemplate.Parameter?.ClassMember?.Any() == true)
             {
-                returnValue.AddRange(GenerateClass(xmlTemplate.Parameter.ClassName, xmlTemplate.Parameter.ClassMember));
+                customClasses.AddRange(GenerateClass(xmlTemplate.Parameter.ClassName, xmlTemplate.Parameter.ClassMember));
             }
 
             if (xmlTemplate.Result?.ResultClass?.ClassMember?.Any() == true)
             {
-                returnValue.AddRange(GenerateClass(xmlTemplate.Result.ResultClass.Name, xmlTemplate.Result.ResultClass.ClassMember));
+                customClasses.AddRange(GenerateClass(xmlTemplate.Result.ResultClass.Name, xmlTemplate.Result.ResultClass.ClassMember));
             }
 
-            return returnValue;
+            return (rawClassTemplate, customClasses);
         }
 
         public static string RawDataConverterGenerator(CORE_DB_QUERY_XML_Template xmlTemplate)
