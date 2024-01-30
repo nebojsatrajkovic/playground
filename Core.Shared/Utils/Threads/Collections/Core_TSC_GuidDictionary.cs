@@ -12,7 +12,7 @@ namespace Core.Shared.Utils.Threads.Collections
         private object isDisposing_Object = new();
 
         private Dictionary<Guid, int> idxPositionNumber;
-        private List<T> Content;
+        private List<T?> Content;
 
         /// <summary>
         /// The default constructor
@@ -20,7 +20,7 @@ namespace Core.Shared.Utils.Threads.Collections
         public Core_TSC_GuidDictionary()
         {
             idxPositionNumber = new Dictionary<Guid, int>();
-            Content = new List<T>();
+            Content = new List<T?>();
         }
 
         private object AddItemLock = new();
@@ -97,7 +97,7 @@ namespace Core.Shared.Utils.Threads.Collections
 
                 lock (AddItemLock)
                 {
-                    return Content.ToImmutableArray();
+                    return [.. Content];
                 }
             }
         }
@@ -105,7 +105,7 @@ namespace Core.Shared.Utils.Threads.Collections
         /// <summary>
         /// Returns an immutable array of the values of the dictionary
         /// </summary>
-        public ImmutableDictionary<Guid, T> KeyValuePairs
+        public ImmutableDictionary<Guid, T?> KeyValuePairs
         {
             get
             {
@@ -114,12 +114,12 @@ namespace Core.Shared.Utils.Threads.Collections
                     // You cannot perform any action during disposal
                     if (isDisposing)
                     {
-                        ImmutableDictionary<Guid, T>.Builder builder2 = ImmutableDictionary.CreateBuilder<Guid, T>();
+                        ImmutableDictionary<Guid, T?>.Builder builder2 = ImmutableDictionary.CreateBuilder<Guid, T?>();
                         return builder2.ToImmutable();
                     }
                 }
 
-                ImmutableDictionary<Guid, T>.Builder builder = ImmutableDictionary.CreateBuilder<Guid, T>();
+                ImmutableDictionary<Guid, T?>.Builder builder = ImmutableDictionary.CreateBuilder<Guid, T?>();
                 lock (AddItemLock)
                 {
                     foreach (KeyValuePair<Guid, int> i in idxPositionNumber)

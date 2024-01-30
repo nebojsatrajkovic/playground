@@ -4,17 +4,17 @@ namespace Core.Shared.Utils
 {
     public class PasswordHasher
     {
-        public static string Prefix = "$V1$";
+        static string Prefix = "$V1$";
 
         /// <summary>
         /// Size of salt.
         /// </summary>
-        private const int SaltSize = 16;
+        const int SaltSize = 16;
 
         /// <summary>
         /// Size of hash.
         /// </summary>
-        private const int HashSize = 20;
+        const int HashSize = 20;
 
         /// <summary>
         /// Creates a hash from a password.
@@ -22,7 +22,7 @@ namespace Core.Shared.Utils
         /// <param name="password">The password.</param>
         /// <param name="iterations">Number of iterations.</param>
         /// <returns>The hash.</returns>
-        public static string Hash(string password, int iterations)
+        static string Hash(string password, int iterations)
         {
             // Create salt
             byte[] salt;
@@ -30,7 +30,7 @@ namespace Core.Shared.Utils
             rng.GetBytes(salt = new byte[SaltSize]);
 
             // Create hash
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
+            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.MD5);
             var hash = pbkdf2.GetBytes(HashSize);
 
             // Combine salt and hash
@@ -92,7 +92,7 @@ namespace Core.Shared.Utils
             Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
             // Create hash with given salt
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
+            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.MD5);
             byte[] hash = pbkdf2.GetBytes(HashSize);
 
             // Get result
