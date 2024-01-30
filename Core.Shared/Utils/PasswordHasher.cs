@@ -30,7 +30,7 @@ namespace Core.Shared.Utils
             rng.GetBytes(salt = new byte[SaltSize]);
 
             // Create hash
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.MD5);
+            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA1);
             var hash = pbkdf2.GetBytes(HashSize);
 
             // Combine salt and hash
@@ -92,7 +92,7 @@ namespace Core.Shared.Utils
             Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
             // Create hash with given salt
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.MD5);
+            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA1);
             byte[] hash = pbkdf2.GetBytes(HashSize);
 
             // Get result
