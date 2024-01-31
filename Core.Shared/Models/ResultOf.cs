@@ -2,8 +2,8 @@
 {
     public enum CORE_OperationStatus
     {
-        SUCCESS,
-        ERROR
+        SUCCESS = 1,
+        ERROR = 2
     }
 
     public abstract class AResultOf

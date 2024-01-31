@@ -6,19 +6,21 @@ namespace Core.Shared.Utils
 {
     public static class SessionGenerator
     {
-        public static void UpdateCookie(IHttpContextAccessor httpContextAccessor, string sessionToken, string cookieDomain)
+        public static void UpdateCookie(IHttpContextAccessor httpContextAccessor, string sessionToken)
         {
             httpContextAccessor.HttpContext?.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
             httpContextAccessor.HttpContext?.Response.Headers.Append(CORE_Configuration.AuthKey, sessionToken);
 
+            var domain = httpContextAccessor.HttpContext?.Request.Host.Host ?? "localhost";
+
 #if DEBUG
-            cookieDomain = "localhost";
+            domain = "localhost";
 #endif
 
             httpContextAccessor.HttpContext?.Response.Cookies.Append(CORE_Configuration.AuthKey, sessionToken, new CookieOptions
             {
                 Expires = DateTime.Now.AddHours(8),
-                Domain = cookieDomain,
+                Domain = domain,
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
                 Secure = true

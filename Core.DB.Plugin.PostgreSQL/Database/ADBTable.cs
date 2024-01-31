@@ -186,12 +186,26 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
-            var (columns, values) = GetColumnsAndValues(parameter);
-            var onDuplicateKeyStatement = OnDuplicateKeyStatement();
-
             var primaryKeyProperty = typeof(T1).GetProperties().First(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
+            object? a = primaryKeyProperty.GetValue(parameter, null);
+            object? b = DefaultForType(primaryKeyProperty.PropertyType);
 
-            var queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) ON CONFLICT ({primaryKeyProperty.Name}) DO UPDATE SET {onDuplicateKeyStatement}";
+            string queryString;
+
+            if (a != null && b != null && a.Equals(b))
+            {
+                var (columns, values) = GetColumnsAndValues(parameter, true);
+                var onDuplicateKeyStatement = OnDuplicateKeyStatement();
+
+                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values});";
+            }
+            else
+            {
+                var (columns, values) = GetColumnsAndValues(parameter, false);
+                var onDuplicateKeyStatement = OnDuplicateKeyStatement();
+
+                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) ON CONFLICT ({primaryKeyProperty.Name}) DO UPDATE SET {onDuplicateKeyStatement};";
+            }
 
             using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
 
@@ -200,9 +214,14 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             return parameter;
         }
 
-        internal static (string columns, string values) GetColumnsAndValues(T1 parameter)
+        internal static object? DefaultForType(Type targetType)
         {
-            var properties = typeof(T1).GetFilteredProperties();
+            return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
+        }
+
+        internal static (string columns, string values) GetColumnsAndValues(T1 parameter, bool isAutoIncrement)
+        {
+            var properties = isAutoIncrement ? typeof(T1).GetFilteredProperties_ForAutoIncrementSave() : typeof(T1).GetFilteredProperties();
 
             var columnsBuilder = new StringBuilder();
             var valuesBuilder = new StringBuilder();
@@ -277,7 +296,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
             foreach (var property in properties)
             {
-                sb.Append($"{property.Name} = excluded.{property.Name}");
+                sb.Append($"{property.Name} = excluded.{property.Name}, ");
             }
 
             var statement = sb.ToString();
@@ -410,6 +429,13 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         internal static List<PropertyInfo> GetFilteredProperties(this Type t)
         {
             var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_Ignore)))).ToList();
+
+            return properties;
+        }
+
+        internal static List<PropertyInfo> GetFilteredProperties_ForAutoIncrementSave(this Type t)
+        {
+            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey) || a.AttributeType == typeof(CORE_DB_SQL_Ignore)))).ToList();
 
             return properties;
         }
