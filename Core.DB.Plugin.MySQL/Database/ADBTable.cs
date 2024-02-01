@@ -40,7 +40,27 @@ namespace Core.DB.Plugin.MySQL.Database
 
                     foreach (var property in properties)
                     {
-                        property.SetValue(item, reader[property.Name]);
+                        if (property.PropertyType == typeof(bool))
+                        {
+                            var value = reader[property.Name];
+
+                            if (value is sbyte val)
+                            {
+                                var boolValue = val > 0;
+
+                                property.SetValue(item, boolValue);
+                            }
+                            else
+                            {
+                                // not supported currently
+
+                                property.SetValue(item, false);
+                            }
+                        }
+                        else
+                        {
+                            property.SetValue(item, reader[property.Name]);
+                        }
                     }
 
                     result.Add(item);

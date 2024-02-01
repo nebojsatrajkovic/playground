@@ -142,7 +142,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
                                             modelBuilder.AppendLine($"        public Guid {column.Name} {{ get; set; }} = Guid.NewGuid();");
                                         }
 
-                                        else if (IsValueType(cSharpType))
+                                        else if (IsNotNullableType(cSharpType.ToLower()))
                                         {
                                             modelBuilder.AppendLine($"        public {cSharpType} {column.Name} {{ get; set; }}");
                                         }
@@ -189,10 +189,12 @@ namespace CORE_VS_PLUGIN.GENERATOR
             return isSuccess;
         }
 
-        static bool IsValueType(string cSharpType)
+        static bool IsNotNullableType(string cSharpType)
         {
             return
                 cSharpType == "decimal" ||
+                cSharpType == "datetime" ||
+                cSharpType == "guid" ||
                 cSharpType == "double" ||
                 cSharpType == "float" ||
                 cSharpType == "int" ||
