@@ -227,6 +227,9 @@ namespace CORE_VS_PLUGIN.GENERATOR
                 case "mediumtext":
                 case "json":
                 case "char":
+                case "nchar":
+                case "varchar":
+                case "nvarchar":
                     return "string";
 
                 case "timestamp":

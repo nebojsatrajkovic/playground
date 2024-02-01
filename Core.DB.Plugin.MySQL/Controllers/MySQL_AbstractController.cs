@@ -55,7 +55,7 @@ namespace Core.DB.Plugin.MySQL.Controllers
 
                 if (authenticate)
                 {
-                    Authenticate();
+                    Authenticate(dbConnection);
                 }
 
                 action();
@@ -86,7 +86,7 @@ namespace Core.DB.Plugin.MySQL.Controllers
             {
                 if (authenticate)
                 {
-                    Authenticate();
+                    Authenticate(_DB_Connection);
                 }
 
                 var result = action();
@@ -168,6 +168,6 @@ namespace Core.DB.Plugin.MySQL.Controllers
 
         protected abstract string GetSessionToken();
 
-        protected abstract void Authenticate();
+        protected abstract void Authenticate(CORE_DB_Connection dbConnection);
     }
 }
