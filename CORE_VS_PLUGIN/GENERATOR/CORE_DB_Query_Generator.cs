@@ -51,7 +51,16 @@ namespace CORE_VS_PLUGIN.GENERATOR
             {
                 classTemplate = classTemplate.Replace("${NAMESPACE}", xmlTemplate.Meta.MethodNamespace);
                 classTemplate = classTemplate.Replace("${CLASS_NAME}", xmlTemplate.Meta.MethodClassName);
-                classTemplate = classTemplate.Replace("${PARAMETER_TYPE}", xmlTemplate.Parameter.ClassName);
+
+                if (xmlTemplate.Parameter != null && !string.IsNullOrEmpty(xmlTemplate.Parameter.ClassName))
+                {
+                    classTemplate = classTemplate.Replace("${PARAMETER_TYPE}", xmlTemplate.Parameter.ClassName);
+                }
+                else
+                {
+                    classTemplate = classTemplate.Replace(", ${PARAMETER_TYPE} parameter", string.Empty);
+                }
+
                 classTemplate = classTemplate.Replace("${COMMAND_LOCATION}", commandLocation);
             }
 
