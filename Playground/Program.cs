@@ -1,20 +1,9 @@
 using Core.DB.Initializers;
-using Core.Shared.Configuration;
+using Core.Shared;
 using Core.Shared.ExceptionHandling;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
-
-#region core settings
-
-var coreConfigurationSection = builder.Configuration.GetSection(nameof(CORE_Configuration));
-
-var coreConfiguration = coreConfigurationSection.Get<CORE_Configuration>();
-coreConfiguration.Database = coreConfigurationSection.GetSection(nameof(CORE_Database)).Get<CORE_Database>();
-
-builder.Services.AddSingleton<ICORE_Configuration>(coreConfiguration);
-
-#endregion core settings
 
 builder.Services.AddControllers().AddJsonOptions(json =>
 {
@@ -35,9 +24,11 @@ builder.Services.AddHttpContextAccessor();
 // NOTE: include controllers from core library
 builder.Services.AddMvc().AddApplicationPart(typeof(Core.Shared.Controllers.LongPollingController).Assembly);
 
-builder.Services.InitializeCoreDB();
-
 builder.Logging.AddLog4Net();
+
+builder.Initialize_CORE_Configuration();
+
+builder.Services.InitializeCoreDB();
 
 var app = builder.Build();
 
