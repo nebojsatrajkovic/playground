@@ -1,7 +1,7 @@
 ﻿using Core.Shared.Configuration;
+using Core.Shared.ExceptionHandling.Exceptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Core.Shared
 {
@@ -9,19 +9,26 @@ namespace Core.Shared
     {
         public static void Initialize_CORE_Configuration(this WebApplicationBuilder builder)
         {
-            var coreConfigurationSection = builder.Configuration.GetSection(nameof(CORE_Configuration));
+            var section_CoreAPI = builder.Configuration.GetSection(nameof(CORE_API));
 
-            if (coreConfigurationSection != null)
+            if (section_CoreAPI != null)
             {
-                var coreConfiguration = coreConfigurationSection.Get<CORE_Configuration>() ?? new CORE_Configuration();
-                var databaseConfigurationSection = coreConfigurationSection.GetSection(nameof(CORE_Database));
-                coreConfiguration.Database = databaseConfigurationSection.Get<CORE_Database>() ?? new CORE_Database();
-
-                builder.Services.AddSingleton<ICORE_Configuration>(coreConfiguration);
+                CORE_Configuration.API = section_CoreAPI.Get<CORE_API>() ?? new CORE_API();
             }
             else
             {
-                throw new Exception("Failed to initialize core configuration!");
+                throw new CORE_ConfigurationException("Failed to initialize API configuration!");
+            }
+
+            var section_CoreDatabase = builder.Configuration.GetSection(nameof(CORE_Database));
+
+            if (section_CoreAPI != null)
+            {
+                CORE_Configuration.Database = section_CoreDatabase.Get<CORE_Database>() ?? new CORE_Database();
+            }
+            else
+            {
+                throw new CORE_ConfigurationException("Failed to initialize database configuration!");
             }
         }
     }

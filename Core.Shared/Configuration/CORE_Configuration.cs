@@ -1,14 +1,14 @@
 ﻿namespace Core.Shared.Configuration
 {
-    public interface ICORE_Configuration
+    public static class CORE_Configuration
     {
-        CORE_Database Database { get; set; }
+        public static CORE_API API { get; set; } = null!;
+        public static CORE_Database Database { get; set; } = null!;
     }
 
-    public class CORE_Configuration : ICORE_Configuration
+    public class CORE_API
     {
-        public static string AuthKey { get; set; } = string.Empty;
-        public CORE_Database Database { get; set; } = null!;
+        public string AuthKey { get; set; } = string.Empty;
     }
 
     public class CORE_Database

@@ -1,20 +1,21 @@
-﻿using Core.DB.Plugin.MSSQL.Controllers;
+﻿using Core.DB.Plugin.MySQL.Controllers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling.Exceptions;
+using CoreCore.DB.Plugin.Shared.Database;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Playground.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AbstractController : MSSQL_AbstractController
+    public class AbstractController : MySQL_AbstractController
     {
-        protected AbstractController(ILogger logger, ICORE_Configuration coreConfiguration) : base(logger, coreConfiguration.Database.ConnectionString)
+        protected AbstractController(ILogger logger) : base(logger, CORE_Configuration.Database.ConnectionString)
         {
 
         }
 
-        protected override void Authenticate()
+        protected override void Authenticate(CORE_DB_Connection dbConnection)
         {
             bool isAuthenticated = true;
 
@@ -37,11 +38,11 @@ namespace Playground.Controllers
 
             try
             {
-                HttpContext.Request.Cookies.TryGetValue(CORE_Configuration.AuthKey, out sessionToken);
+                HttpContext.Request.Cookies.TryGetValue(CORE_Configuration.API.AuthKey, out sessionToken);
 
                 if (string.IsNullOrEmpty(sessionToken))
                 {
-                    HttpContext.Request.Headers.TryGetValue(CORE_Configuration.AuthKey, out var sessionTokenValue);
+                    HttpContext.Request.Headers.TryGetValue(CORE_Configuration.API.AuthKey, out var sessionTokenValue);
 
                     sessionToken = sessionTokenValue;
                 }
