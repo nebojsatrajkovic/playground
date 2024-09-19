@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+
+	<Meta Method_Namespace="CoreDB.Database.DB.Accounts" Method_ClassName="Get_Accounts_for_ID" />
+
+	<SQL>
+		SELECT
+		auth_account.auth_account_id,
+		auth_account.email,
+		auth_account.username
+		FROM auth_account
+		WHERE auth_account.auth_account_id = @AccountID
+	</SQL>
+
+	<Parameter ClassName="P_GAfID">
+		<ClassMember Name="AccountID" Type="int" />
+	</Parameter>
+
+	<Result>
+
+		<ResultClass Name="GAfID" IsCollection="false" GroupBy="auth_account_id">
+			<ClassMember Name="auth_account_id" Type="int" />
+			<ClassMember Name="email" Type="string" />
+			<ClassMember Name="username" Type="string" />
+		</ResultClass>
+
+	</Result>
+
+</Template>

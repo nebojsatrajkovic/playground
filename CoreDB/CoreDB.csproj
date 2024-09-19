@@ -7,11 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Database\DB\Accounts\SQL\Get_Accounts_for_ID.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Accounts_for_ID.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Database\" />
+    <Folder Include="Database\ORM\" />
   </ItemGroup>
 
 </Project>
