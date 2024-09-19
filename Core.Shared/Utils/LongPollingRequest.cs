@@ -4,18 +4,18 @@
     {
         readonly int _timeout;
 
-        static readonly List<LongPollingRequest> _requests = new();
+        static readonly List<LongPollingRequest> _requests = [];
         readonly TaskCompletionSource<bool> _taskCompletionSource = new();
 
-        string _Channel { get; set; }
-        string _Key { get; set; }
-        LongPollingService_Response? _Data { get; set; }
+        string Channel { get; set; }
+        string Key { get; set; }
+        LongPollingService_Response? Data { get; set; }
 
         public LongPollingRequest(string channel, string key, int timeout = 60000)
         {
             _timeout = timeout;
-            _Channel = channel.ToLower();
-            _Key = key.ToLower();
+            Channel = channel.ToLower();
+            Key = key.ToLower();
 
             lock (_requests)
             {
@@ -27,16 +27,15 @@
         {
             lock (_requests)
             {
-                var requests = _requests.Where(x => x._Channel.ToLower().Equals(channel.ToLower()) && x._Key.ToLower().Equals(key.ToLower())).ToList();
+                var requests = _requests.Where(x => x.Channel.ToLower().Equals(channel.ToLower()) && x.Key.ToLower().Equals(key.ToLower())).ToList();
 
                 foreach (var request in requests)
                 {
-                    request._Data = data ?? new LongPollingService_Response { IsUpdateAvailable = true };
+                    request.Data = data ?? new LongPollingService_Response { IsUpdateAvailable = true };
                     request._taskCompletionSource.SetResult(true);
                 }
             }
         }
-
 
         public async Task<LongPollingService_Response> WaitAsync()
         {
@@ -47,7 +46,7 @@
                 _requests.Remove(this);
             }
 
-            return _Data ?? new LongPollingService_Response { IsTimeoutReached = true };
+            return Data ?? new LongPollingService_Response { IsTimeoutReached = true };
         }
     }
 

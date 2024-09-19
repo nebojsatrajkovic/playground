@@ -7,13 +7,8 @@ namespace Playground.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ExampleController : AbstractController
+    public class ExampleController(ILogger<ExampleController> logger) : AbstractController(logger)
     {
-        public ExampleController(ILogger<ExampleController> logger) : base(logger)
-        {
-
-        }
-
         [HttpGet]
         [Route("example")]
         public object Example()
@@ -34,7 +29,6 @@ namespace Playground.Controllers
                 };
 
                 auth_account.DB.Save(DB_Connection, acc);
-
 
                 var dbAcc = Get_Accounts_for_ID.Invoke(DB_Connection.Connection, DB_Connection.Transaction, new P_GAfID { AccountID = 1 });
             });

@@ -57,18 +57,18 @@ namespace CoreDB.Database.DB.Accounts
             internal static List<GAfID> Convert(List<GAfID_Raw> rawResult)
             {
                 var groupResult =
-                    from el_GAfID in rawResult.Where(element => !EqualsDefaultValue(element.auth_account_id)).ToList()group el_GAfID by new
+                    from el_GAfID in rawResult.Where(element => !EqualsDefaultValue(element.auth_account_id)).ToList()
+                    group el_GAfID by new
                     {
                         el_GAfID.auth_account_id
                     }
-
-                        into gfunct_GAfID
-                        select new GAfID
-                        {
-                            auth_account_id = gfunct_GAfID.Key.auth_account_id,
-                            email = gfunct_GAfID.First().email,
-                            username = gfunct_GAfID.First().username,
-                        };
+                    into gfunct_GAfID
+                    select new GAfID
+                    {
+                        auth_account_id = gfunct_GAfID.Key.auth_account_id,
+                        email = gfunct_GAfID.First().email,
+                        username = gfunct_GAfID.First().username,
+                    };
                 return groupResult.ToList();
             }
         }

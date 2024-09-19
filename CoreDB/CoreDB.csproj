@@ -16,10 +16,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
+    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Database\ORM\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
