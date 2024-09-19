@@ -1,9 +1,12 @@
-﻿namespace Core.Shared.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Core.Shared.Models
 {
     public enum CORE_OperationStatus
     {
         SUCCESS = 1,
-        ERROR = 2
+        ERROR = 2,
+        TIMED_OUT = 3
     }
 
     public abstract class AResultOf
@@ -15,6 +18,8 @@
     public class ResultOf<T> : AResultOf
     {
         public T? OperationResult { get; set; }
+        [JsonIgnore]
+        public Exception? OccurredException { get; set; }
 
         public ResultOf(T? operationResult)
         {
@@ -45,6 +50,20 @@
         {
             Status = status;
             OperationResult = default;
+            Message = message;
+        }
+
+        public ResultOf(Exception ex)
+        {
+            Status = CORE_OperationStatus.ERROR;
+            OccurredException = ex;
+            Message = ex.Message;
+        }
+
+        public ResultOf(Exception ex, string message)
+        {
+            Status = CORE_OperationStatus.ERROR;
+            OccurredException = ex;
             Message = message;
         }
     }
