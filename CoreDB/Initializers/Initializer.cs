@@ -6,7 +6,7 @@ namespace Core.DB.Initializers
     {
         public static void InitializeCoreDB(this IServiceCollection services)
         {
-            
+
         }
     }
 }

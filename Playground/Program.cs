@@ -34,8 +34,8 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger()
+        .UseSwaggerUI();
 }
 
 app.MapControllers();
@@ -46,8 +46,7 @@ app.UseCors(x => x
     .SetIsOriginAllowed(origin => true)
     .AllowCredentials());
 
-app.UseHttpsRedirection()
-    .UseForwardedHeaders()
+app.UseForwardedHeaders()
     .ConfigureCoreExceptionHandler();
 
 app.Run();
