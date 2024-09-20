@@ -5,6 +5,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<OutputType>Library</OutputType>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>Core.DB.Plugin.MySQL</Title>
+		<Authors>Nebojsa Trajkovic</Authors>
+		<Description>MySQL database plugin</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

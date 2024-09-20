@@ -5,6 +5,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<OutputType>Library</OutputType>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>Core.DB.Plugin.PostgreSQL</Title>
+		<Authors>Nebojsa Trajkovic</Authors>
+		<Description>PostgreSQL database plugin</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
