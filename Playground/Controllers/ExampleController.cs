@@ -19,7 +19,7 @@ namespace Playground.Controllers
             //    Name = "My remote company"
             //});
 
-            var result = AUTH.CreateOrUpdateAccount();
+            var result = AUTH.Account.CreateOrUpdateAccount();
 
             return result;
         }
