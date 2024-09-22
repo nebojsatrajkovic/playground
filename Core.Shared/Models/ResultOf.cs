@@ -5,8 +5,9 @@ namespace Core.Shared.Models
     public enum CORE_OperationStatus
     {
         SUCCESS = 1,
-        ERROR = 2,
-        TIMED_OUT = 3
+        FAILED,
+        ERROR,
+        TIMED_OUT
     }
 
     public abstract class AResultOf
@@ -25,32 +26,35 @@ namespace Core.Shared.Models
         {
             Status = CORE_OperationStatus.SUCCESS;
             OperationResult = operationResult;
+            Message = Status.ToString();
         }
 
         public ResultOf(CORE_OperationStatus status, T? operationResult)
         {
             Status = status;
             OperationResult = operationResult;
+            Message = status.ToString();
         }
 
         public ResultOf(CORE_OperationStatus status, T? operationResult, string message)
         {
             Status = status;
             OperationResult = operationResult;
-            Message = message;
+            Message = message ?? status.ToString();
         }
 
         public ResultOf(CORE_OperationStatus status)
         {
             Status = status;
             OperationResult = default;
+            Message = status.ToString();
         }
 
         public ResultOf(CORE_OperationStatus status, string message)
         {
             Status = status;
             OperationResult = default;
-            Message = message;
+            Message = message ?? status.ToString();
         }
 
         public ResultOf(Exception ex)
@@ -64,26 +68,22 @@ namespace Core.Shared.Models
         {
             Status = CORE_OperationStatus.ERROR;
             OccurredException = ex;
-            Message = message;
+            Message = message ?? Status.ToString();
         }
     }
 
     public class ResultOf : AResultOf
     {
-        public ResultOf()
-        {
-            Status = CORE_OperationStatus.SUCCESS;
-        }
-
         public ResultOf(CORE_OperationStatus status)
         {
             Status = status;
+            Message = status.ToString();
         }
 
         public ResultOf(CORE_OperationStatus status, string message)
         {
             Status = status;
-            Message = message;
+            Message = message ?? status.ToString();
         }
     }
 }

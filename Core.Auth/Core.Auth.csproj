@@ -8,6 +8,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Database\DB\Accounts\SQL\Get_Accounts_for_ID.sql" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Accounts_for_ID.sql" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
@@ -18,6 +26,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
+	  <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

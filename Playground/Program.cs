@@ -1,4 +1,3 @@
-using Core.DB.Initializers;
 using Core.Shared;
 using Core.Shared.ExceptionHandling;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -27,8 +26,6 @@ builder.Services.AddMvc().AddApplicationPart(typeof(Core.Shared.Controllers.Long
 builder.Logging.AddLog4Net();
 
 builder.Initialize_CORE_Configuration();
-
-builder.Services.InitializeCoreDB();
 
 var app = builder.Build();
 

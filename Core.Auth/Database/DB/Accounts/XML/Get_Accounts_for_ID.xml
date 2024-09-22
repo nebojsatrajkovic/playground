@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Template>
 
-	<Meta Method_Namespace="CoreDB.Database.DB.Accounts" Method_ClassName="Get_Accounts_for_ID" />
+	<Meta Method_Namespace="Core.Auth.Database.DB.Accounts" Method_ClassName="Get_Accounts_for_ID" />
 
 	<SQL>
 		SELECT

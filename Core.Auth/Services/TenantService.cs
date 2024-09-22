@@ -1,24 +1,25 @@
 ﻿using Core.Auth.Database.ORM;
 using Core.Auth.Models.Tenant;
+using Core.Shared.Models;
 using CoreCore.DB.Plugin.Shared.Database;
 
 namespace Core.Auth.Services
 {
-    public static class TenantService
+    internal static class TenantService
     {
-        public static CreateOrUpdateTenant_Response CreateOrUpdateTenant(CORE_DB_Connection connection, CreateOrUpdateTenant_Request parameter)
+        internal static ResultOf<CreateOrUpdateTenant_Response> CreateOrUpdateTenant(CORE_DB_Connection connection, CreateOrUpdateTenant_Request parameter)
         {
             try
             {
-                auth_tenant.Model dbTenant;
+                auth_tenant.Model? dbTenant;
 
                 if (parameter.ID > 0)
                 {
                     dbTenant = auth_tenant.DB.Search(connection, new auth_tenant.Query { auth_tenant_id = parameter.ID }).FirstOrDefault();
 
-                    if (dbTenant == null || dbTenant.auth_tenant_id == 0)
+                    if (dbTenant == null)
                     {
-                        // handle error
+                        return new ResultOf<CreateOrUpdateTenant_Response>(CORE_OperationStatus.FAILED, $"Tenant was not found for specified id {parameter.ID}");
                     }
                 }
                 else
@@ -30,11 +31,11 @@ namespace Core.Auth.Services
 
                 auth_tenant.DB.Save(connection, dbTenant);
 
-                return new CreateOrUpdateTenant_Response
+                return new ResultOf<CreateOrUpdateTenant_Response>(new CreateOrUpdateTenant_Response
                 {
-                    ID = dbTenant.tenant_id,
+                    ID = dbTenant.auth_tenant_id,
                     Name = dbTenant.tenant_name
-                };
+                });
             }
             catch (Exception)
             {

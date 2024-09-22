@@ -15,7 +15,6 @@ public static class auth_tenant
         public DateTime created_at { get; set; }
         public DateTime modified_at { get; set; }
         public bool is_deleted { get; set; }
-        public int tenant_id { get; set; }
 
         public PropertyInfo? GetPrimaryKeyProperty()
         {
@@ -30,8 +29,6 @@ public static class auth_tenant
         public DateTime? created_at { get; set; } = null;
         public DateTime? modified_at { get; set; } = null;
         public bool? is_deleted { get; set; } = null;
-        public int? tenant_id { get; set; } = null;
-
     }
 
     public class DB : ADBTable<Model, Query>

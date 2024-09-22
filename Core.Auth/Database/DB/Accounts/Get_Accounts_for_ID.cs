@@ -2,7 +2,7 @@ using System.Data;
 using System.Data.Common;
 using System.Text;
 
-namespace CoreDB.Database.DB.Accounts
+namespace Core.Auth.Database.DB.Accounts
 {
     public class Get_Accounts_for_ID
     {
@@ -11,7 +11,7 @@ namespace CoreDB.Database.DB.Accounts
             var command = connection.CreateCommand();
             command.Connection = connection;
             command.Transaction = transaction;
-            const string commandLocation = "CoreDB.Database.DB.Accounts.SQL.Get_Accounts_for_ID.sql";
+            const string commandLocation = "Core.Auth.Database.DB.Accounts.SQL.Get_Accounts_for_ID.sql";
             command.CommandText = new StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(commandLocation)).ReadToEnd();
             command.CommandTimeout = 60;
             var _AccountID = command.CreateParameter();
@@ -62,7 +62,8 @@ namespace CoreDB.Database.DB.Accounts
                     {
                         el_GAfID.auth_account_id
                     }
-                    into gfunct_GAfID
+
+                        into gfunct_GAfID
                     select new GAfID
                     {
                         auth_account_id = gfunct_GAfID.Key.auth_account_id,
