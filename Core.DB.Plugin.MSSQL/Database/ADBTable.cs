@@ -1,6 +1,7 @@
 ﻿using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Extensions;
 using Core.DB.Plugin.Shared.Interfaces;
+using Core.DB.Plugin.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using System.Data.SqlClient;
 using System.Reflection;
@@ -186,20 +187,18 @@ namespace Core.DB.Plugin.MSSQL.Database
         #endregion hard delete
 
         /// <summary>
-        /// isUsingIdentityColumn specifies that MSSQL database is configured to automatically generate primary key values so they should be excluded from insert statement
+        /// isUsingPrimaryKeyAutoIncrement specifies that MSSQL database is configured to automatically generate primary key values so they should be excluded from insert statement
         /// </summary>
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
-        /// <param name="isUsingIdentityColumn"></param>
+        /// <param name="isUsingPrimaryKeyAutoIncrement"></param>
         /// <returns></returns>
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter, bool isUsingPrimaryKeyAutoIncrement = false)
         {
+            var primaryKeyProperty = parameter.GetPrimaryKeyProperty() ?? throw new Exception($"Primary key property not found for type {parameter.GetType().Name}");
+
             var usingStatement = GetUsingPartForMergeStatement(parameter);
-            var (matched, notmatchedcolumns, notmatchedvalues) = OnDuplicateKeyStatement(isUsingPrimaryKeyAutoIncrement);
-
-            var primaryKeyProperty = parameter.GetPrimaryKeyProperty();
-
-            if (primaryKeyProperty == null) { throw new Exception($"Primary key property not found for type {parameter.GetType().Name}"); }
+            var (matched, notMatchedColumns, notMatchedValues) = OnDuplicateKeyStatement(primaryKeyProperty, isUsingPrimaryKeyAutoIncrement);
 
             var queryString = $"MERGE INTO [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] AS target"
                 +
@@ -209,7 +208,7 @@ namespace Core.DB.Plugin.MSSQL.Database
                 +
                 $" WHEN MATCHED THEN UPDATE SET {matched}"
                 +
-                $" WHEN NOT MATCHED THEN INSERT ({notmatchedcolumns}) VALUES ({notmatchedvalues}); SELECT SCOPE_IDENTITY();";
+                $" WHEN NOT MATCHED THEN INSERT ({notMatchedColumns}) VALUES ({notMatchedValues}); SELECT SCOPE_IDENTITY();";
 
             using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
@@ -337,7 +336,7 @@ namespace Core.DB.Plugin.MSSQL.Database
             return result;
         }
 
-        internal static (string matched, string notMatchedColumns, string notMatchedValues) OnDuplicateKeyStatement(bool isUsingPrimaryKeyAutoIncrement)
+        internal static (string matched, string notMatchedColumns, string notMatchedValues) OnDuplicateKeyStatement(PropertyInfo primaryKeyProperty, bool isUsingPrimaryKeyAutoIncrement)
         {
             var properties = typeof(T1).GetFilteredProperties();
 
@@ -347,7 +346,7 @@ namespace Core.DB.Plugin.MSSQL.Database
 
             foreach (var property in properties)
             {
-                var isPrimaryKey = property.CustomAttributes.HasValue() && property.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey));
+                var isPrimaryKey = property == primaryKeyProperty;
 
                 if (!isPrimaryKey)
                 {
@@ -489,16 +488,6 @@ namespace Core.DB.Plugin.MSSQL.Database
             }
 
             return false;
-        }
-    }
-
-    internal static class TypeExtensions
-    {
-        internal static List<PropertyInfo> GetFilteredProperties(this Type t)
-        {
-            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_Ignore)))).ToList();
-
-            return properties;
         }
     }
 }

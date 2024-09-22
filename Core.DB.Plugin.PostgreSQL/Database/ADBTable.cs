@@ -1,8 +1,9 @@
 ﻿using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Extensions;
+using Core.DB.Plugin.Shared.Interfaces;
+using Core.DB.Plugin.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using Npgsql;
-using System.Reflection;
 using System.Text;
 
 namespace Core.DB.Plugin.PostgreSQL.Database
@@ -12,7 +13,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
     /// </summary>
     /// <typeparam name="T1">Represents main database table model</typeparam>
     /// <typeparam name="T2">Represents model for data querying</typeparam>
-    public class ADBTable<T1, T2> where T1 : new() where T2 : new()
+    public class ADBTable<T1, T2> where T1 : IDB_Table, new() where T2 : new()
     {
         /// <summary>
         /// Search all table entries that match values passed by parameter
@@ -186,7 +187,8 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
-            var primaryKeyProperty = typeof(T1).GetProperties().First(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
+            var primaryKeyProperty = parameter.GetPrimaryKeyProperty() ?? throw new Exception($"Primary key property not found for type {parameter.GetType().Name}");
+
             object? a = primaryKeyProperty.GetValue(parameter, null);
             object? b = DefaultForType(primaryKeyProperty.PropertyType);
 
@@ -195,21 +197,27 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             if (a != null && b != null && a.Equals(b))
             {
                 var (columns, values) = GetColumnsAndValues(parameter, true);
-                var onDuplicateKeyStatement = OnDuplicateKeyStatement();
 
-                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values});";
+                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) RETURNING id;";
             }
             else
             {
                 var (columns, values) = GetColumnsAndValues(parameter, false);
                 var onDuplicateKeyStatement = OnDuplicateKeyStatement();
 
-                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) ON CONFLICT ({primaryKeyProperty.Name}) DO UPDATE SET {onDuplicateKeyStatement};";
+                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) ON CONFLICT ({primaryKeyProperty.Name}) DO UPDATE SET {onDuplicateKeyStatement} RETURNING id;";
             }
 
             using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
 
-            var result = command.ExecuteNonQuery();
+            var result = command.ExecuteScalar();
+
+            if (result != null && result != DBNull.Value)
+            {
+                var id = Convert.ChangeType(result, primaryKeyProperty.PropertyType);
+
+                primaryKeyProperty.SetValue(parameter, id);
+            }
 
             return parameter;
         }
@@ -421,23 +429,6 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             }
 
             return false;
-        }
-    }
-
-    internal static class TypeExtensions
-    {
-        internal static List<PropertyInfo> GetFilteredProperties(this Type t)
-        {
-            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_Ignore)))).ToList();
-
-            return properties;
-        }
-
-        internal static List<PropertyInfo> GetFilteredProperties_ForAutoIncrementSave(this Type t)
-        {
-            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey) || a.AttributeType == typeof(CORE_DB_SQL_Ignore)))).ToList();
-
-            return properties;
         }
     }
 }

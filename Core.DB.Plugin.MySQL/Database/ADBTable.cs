@@ -1,9 +1,9 @@
 ﻿using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Extensions;
 using Core.DB.Plugin.Shared.Interfaces;
+using Core.DB.Plugin.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using MySql.Data.MySqlClient;
-using System.Reflection;
 using System.Text;
 
 namespace Core.DB.Plugin.MySQL.Database
@@ -207,6 +207,8 @@ namespace Core.DB.Plugin.MySQL.Database
 
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
+            var primaryKeyProperty = parameter.GetPrimaryKeyProperty() ?? throw new Exception($"Primary key property not found for type {parameter.GetType().Name}");
+
             var (columns, values) = GetColumnsAndValues(parameter);
             var onDuplicateKeyStatement = OnDuplicateKeyStatement();
 
@@ -216,14 +218,9 @@ namespace Core.DB.Plugin.MySQL.Database
 
             var result = command.ExecuteNonQuery();
 
-            var primaryKeyProperty = parameter.GetPrimaryKeyProperty();
+            var id = Convert.ChangeType(command.LastInsertedId, primaryKeyProperty.PropertyType);
 
-            if (primaryKeyProperty != null)
-            {
-                var id = Convert.ChangeType(command.LastInsertedId, primaryKeyProperty.PropertyType);
-
-                primaryKeyProperty.SetValue(parameter, id);
-            }
+            primaryKeyProperty.SetValue(parameter, id);
 
             return parameter;
         }
@@ -421,16 +418,6 @@ namespace Core.DB.Plugin.MySQL.Database
             }
 
             return false;
-        }
-    }
-
-    internal static class TypeExtensions
-    {
-        internal static List<PropertyInfo> GetFilteredProperties(this Type t)
-        {
-            var properties = t.GetProperties().Where(x => !x.CustomAttributes.HasValue() || !(x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_Ignore)))).ToList();
-
-            return properties;
         }
     }
 }
