@@ -1,5 +1,6 @@
 ﻿using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Extensions;
+using Core.DB.Plugin.Shared.Interfaces;
 using CoreCore.DB.Plugin.Shared.Database;
 using MySql.Data.MySqlClient;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace Core.DB.Plugin.MySQL.Database
     /// </summary>
     /// <typeparam name="T1">Represents main database table model</typeparam>
     /// <typeparam name="T2">Represents model for data querying</typeparam>
-    public class ADBTable<T1, T2> where T1 : new() where T2 : new()
+    public class ADBTable<T1, T2> where T1 : IDB_Table, new() where T2 : new()
     {
         /// <summary>
         /// Search all table entries that match values passed by parameter
@@ -207,13 +208,22 @@ namespace Core.DB.Plugin.MySQL.Database
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
             var (columns, values) = GetColumnsAndValues(parameter);
-            var onDuplicateKeyStatement = OnDuplicateKeyStatement(parameter);
+            var onDuplicateKeyStatement = OnDuplicateKeyStatement();
 
             var queryString = $"INSERT INTO {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} ({columns}) VALUES ({values}) as statement ON DUPLICATE KEY UPDATE {onDuplicateKeyStatement}";
 
             using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
+
+            var primaryKeyProperty = parameter.GetPrimaryKeyProperty();
+
+            if (primaryKeyProperty != null)
+            {
+                var id = Convert.ChangeType(command.LastInsertedId, primaryKeyProperty.PropertyType);
+
+                primaryKeyProperty.SetValue(parameter, id);
+            }
 
             return parameter;
         }
@@ -278,7 +288,7 @@ namespace Core.DB.Plugin.MySQL.Database
             return (columns, values);
         }
 
-        internal static string OnDuplicateKeyStatement(T1 parameter)
+        internal static string OnDuplicateKeyStatement()
         {
             var properties = typeof(T1).GetFilteredProperties();
 

@@ -26,7 +26,7 @@ namespace Core.Shared.Services.Interfaces
         /// <param name="token"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        bool TryTake(CancellationToken token, out T value);
+        bool TryTake(CancellationToken token, out T? value);
         /// <summary>
         /// Takes specified number of items from collection. If there are no items in collection calling thread will go to sleep.
         /// If collection has less items than requested it will take all from the collection and return it. It will not wait until it's filled up.

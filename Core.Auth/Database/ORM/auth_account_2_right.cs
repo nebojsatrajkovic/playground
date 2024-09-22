@@ -3,7 +3,7 @@ using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Interfaces;
 using System.Reflection;
 
-namespace CoreDB.Database.ORM;
+namespace Core.Auth.Database.ORM;
 
 public static class auth_account_2_right
 {

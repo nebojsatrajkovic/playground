@@ -34,7 +34,7 @@ namespace Core.Shared.Services
         }
 
         /// <inheritdoc/>
-        public bool TryTake(CancellationToken token, out T value)
+        public bool TryTake(CancellationToken token, out T? value)
         {
             return _Queue.TryTake(out value, 10 * 1000, token);
         }

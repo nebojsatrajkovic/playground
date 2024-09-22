@@ -17,7 +17,6 @@ namespace Playground.Controllers
             {
                 var acc = new auth_account.Model
                 {
-                    auth_account_id = 1,
                     created_at = DateTime.Now,
                     email = "nebojsa.trajkovic92+playground@gmail.com",
                     is_verified = true,
