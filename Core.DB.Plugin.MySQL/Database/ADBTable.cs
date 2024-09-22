@@ -205,6 +205,13 @@ namespace Core.DB.Plugin.MySQL.Database
 
         #endregion hard delete
 
+        /// <summary>
+        /// Saves the entry in the database.
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
             var primaryKeyProperty = parameter.GetPrimaryKeyProperty() ?? throw new Exception($"Primary key property not found for type {parameter.GetType().Name}");
