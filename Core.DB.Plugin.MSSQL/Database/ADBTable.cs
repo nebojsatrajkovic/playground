@@ -1,5 +1,6 @@
 ﻿using Core.DB.Plugin.Shared.Attributes;
 using Core.DB.Plugin.Shared.Extensions;
+using Core.DB.Plugin.Shared.Interfaces;
 using CoreCore.DB.Plugin.Shared.Database;
 using System.Data.SqlClient;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace Core.DB.Plugin.MSSQL.Database
     /// </summary>
     /// <typeparam name="T1">Represents main database table model</typeparam>
     /// <typeparam name="T2">Represents model for data querying</typeparam>
-    public class ADBTable<T1, T2> where T1 : new() where T2 : new()
+    public class ADBTable<T1, T2> where T1 : IDB_Table, new() where T2 : new()
     {
         /// <summary>
         /// Search all table entries that match values passed by parameter
@@ -196,7 +197,9 @@ namespace Core.DB.Plugin.MSSQL.Database
             var usingStatement = GetUsingPartForMergeStatement(parameter);
             var (matched, notmatchedcolumns, notmatchedvalues) = OnDuplicateKeyStatement(isUsingPrimaryKeyAutoIncrement);
 
-            var primaryKeyProperty = typeof(T1).GetProperties().First(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
+            var primaryKeyProperty = parameter.GetPrimaryKeyProperty();
+
+            if (primaryKeyProperty == null) { throw new Exception($"Primary key property not found for type {parameter.GetType().Name}"); }
 
             var queryString = $"MERGE INTO [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] AS target"
                 +
@@ -206,11 +209,18 @@ namespace Core.DB.Plugin.MSSQL.Database
                 +
                 $" WHEN MATCHED THEN UPDATE SET {matched}"
                 +
-                $" WHEN NOT MATCHED THEN INSERT ({notmatchedcolumns}) VALUES ({notmatchedvalues});";
+                $" WHEN NOT MATCHED THEN INSERT ({notmatchedcolumns}) VALUES ({notmatchedvalues}); SELECT SCOPE_IDENTITY();";
 
             using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
-            var result = command.ExecuteNonQuery();
+            var result = command.ExecuteScalar();
+
+            if (result != null && result != DBNull.Value)
+            {
+                var id = Convert.ChangeType(result, primaryKeyProperty.PropertyType);
+
+                primaryKeyProperty.SetValue(parameter, id);
+            }
 
             return parameter;
         }
