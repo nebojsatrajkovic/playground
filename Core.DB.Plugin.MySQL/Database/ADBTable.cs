@@ -8,6 +8,8 @@ using System.Text;
 
 namespace Core.DB.Plugin.MySQL.Database
 {
+    // TODO implement properties caching to speed up reflection execution (faster generating of queries and type analysis)
+
     /// <summary>
     /// Abstract class that contains all the logic for database table ORM manipulation
     /// </summary>
