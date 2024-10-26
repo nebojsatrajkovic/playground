@@ -1,9 +1,10 @@
 ﻿namespace Core.Shared.Utils.ThreadsafeCollections
 {
-    public class CORE_TS_Dictionary<TKey, TValue> where TKey : notnull
+    public class CORE_TS_Dictionary<TKey, TValue> : IDisposable where TKey : notnull
     {
         Dictionary<TKey, TValue> dictionary = [];
-        private readonly object padlock = new();
+        readonly object padlock = new();
+        bool disposed = false;
 
         /// <summary>
         /// Get the count of elements in a thread-safe manner.
@@ -12,6 +13,8 @@
         {
             get
             {
+                if (disposed) { return 0; }
+
                 lock (padlock)
                 {
                     return dictionary.Count;
@@ -26,6 +29,8 @@
         /// <param name="value"></param>
         public void Add(TKey key, TValue value)
         {
+            if (disposed) return;
+
             lock (padlock)
             {
                 dictionary.Add(key, value);
@@ -40,6 +45,8 @@
         /// <returns></returns>
         public bool TryAdd(TKey key, TValue value)
         {
+            if (disposed) return false;
+
             lock (padlock)
             {
                 return dictionary.TryAdd(key, value);
@@ -53,6 +60,8 @@
         /// <param name="value"></param>
         public void AddOrUpdate(TKey key, TValue value)
         {
+            if (disposed) return;
+
             lock (padlock)
             {
                 dictionary[key] = value;
@@ -64,8 +73,10 @@
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TValue Get(TKey key)
+        public TValue? Get(TKey key)
         {
+            if (disposed) return default;
+
             lock (padlock)
             {
                 return dictionary[key];
@@ -80,6 +91,12 @@
         /// <returns></returns>
         public bool TryGetValue(TKey key, out TValue? value)
         {
+            if (disposed)
+            {
+                value = default;
+                return false;
+            }
+
             lock (padlock)
             {
                 return dictionary.TryGetValue(key, out value);
@@ -93,6 +110,8 @@
         /// <returns></returns>
         public bool Remove(TKey key)
         {
+            if (disposed) return false;
+
             lock (padlock)
             {
                 return dictionary.Remove(key);
@@ -104,6 +123,8 @@
         /// </summary>
         public void Clear()
         {
+            if (disposed) return;
+
             lock (padlock)
             {
                 dictionary.Clear();
@@ -117,10 +138,49 @@
         /// <returns></returns>
         public bool ContainsKey(TKey key)
         {
+            if (disposed) return false;
+
             lock (padlock)
             {
                 return dictionary.ContainsKey(key);
             }
+        }
+
+        /// <summary>
+        /// Dispose method for releasing resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose pattern implementation.
+        /// </summary>
+        void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    lock (padlock)
+                    {
+                        dictionary.Clear();
+                        dictionary = null!;
+                    }
+                }
+
+                disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Finalizer to ensure resources are cleaned up if Dispose is not called
+        /// </summary>
+        ~CORE_TS_Dictionary()
+        {
+            Dispose(false);
         }
     }
 }
