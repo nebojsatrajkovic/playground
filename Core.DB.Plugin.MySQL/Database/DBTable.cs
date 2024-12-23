@@ -253,11 +253,11 @@ namespace Core.DB.Plugin.MySQL.Database
 
                 if
                 (
-                        valueType == typeof(double) ||
-                        valueType == typeof(float) ||
-                        valueType == typeof(decimal) ||
-                        valueType == typeof(int)
-                        )
+                    valueType == typeof(double) ||
+                    valueType == typeof(float) ||
+                    valueType == typeof(decimal) ||
+                    valueType == typeof(int)
+                )
                 {
                     segment = $"{value}";
                 }
@@ -384,12 +384,12 @@ namespace Core.DB.Plugin.MySQL.Database
                     string segment;
 
                     if
-                        (
+                    (
                         valueType == typeof(double) ||
                         valueType == typeof(float) ||
                         valueType == typeof(decimal) ||
                         valueType == typeof(int)
-                        )
+                    )
                     {
                         segment = $"{value}";
                     }
