@@ -10,7 +10,7 @@ namespace Core.Auth.Services
     {
         internal static ResultOf CreateOrUpdateAccount(CORE_DB_Connection connection)
         {
-            var acc = new auth_account.Model
+            var acc = new auth_account.ORM
             {
                 created_at = DateTime.Now,
                 email = "nebojsa.trajkovic92+playground@gmail.com",
@@ -22,7 +22,13 @@ namespace Core.Auth.Services
                 modified_at = DateTime.Now
             };
 
-            auth_account.DB.Save(connection, acc);
+            auth_account.Database.Save(connection, acc);
+
+            auth_account.Database.Search(connection, new auth_account.QueryParameter
+            {
+
+            });
+
 
             var dbAcc = Get_Accounts_for_ID.Invoke(connection.Connection, connection.Transaction, new P_GAfID { AccountID = 1 });
 

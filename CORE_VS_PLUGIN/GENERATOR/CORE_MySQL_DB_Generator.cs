@@ -63,7 +63,7 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                                     if (!string.IsNullOrEmpty(value))
                                     {
-                                        tableNames.Add(value);
+                                        tableNames.Add($"'{value}'");
                                     }
                                 }
 
@@ -77,42 +77,40 @@ namespace CORE_VS_PLUGIN.GENERATOR
 
                         #region load tables data
 
-                        var tables = new List<CORE_DB_TABLE>();
+                        var dbTablesColumns = new List<CORE_DB_TABLE_COLUMN>();
 
-                        foreach (var tableName in tableNames)
+                        var tableNamesParameter = string.Join(", ", tableNames);
+
+                        var query_GetTableData = $"SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name IN ({tableNamesParameter});";
+
+                        using (var command_GetTableData = new MySqlCommand(query_GetTableData, connection, transaction))
                         {
-                            var query_GetTableData = $"SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{tableName}';";
-
-                            var table = new CORE_DB_TABLE
+                            using (var reader_GetTableData = command_GetTableData.ExecuteReader())
                             {
-                                Name = tableName
-                            };
-
-                            using (var command_GetTableData = new MySqlCommand(query_GetTableData, connection, transaction))
-                            {
-                                using (var reader_GetTableData = command_GetTableData.ExecuteReader())
+                                while (reader_GetTableData.Read())
                                 {
-                                    while (reader_GetTableData.Read())
+                                    dbTablesColumns.Add(new CORE_DB_TABLE_COLUMN
                                     {
-                                        table.Columns.Add(new CORE_DB_TABLE_COLUMN
-                                        {
-                                            Name = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_NAME")),
-                                            TypeName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("DATA_TYPE")),
-                                            DataType = 0,
-                                            IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("IS_NULLABLE")) != "NO",
-                                            OrdinalPosition = reader_GetTableData.GetInt32(reader_GetTableData.GetOrdinal("ORDINAL_POSITION")),
-                                            IsPrimaryKey = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_KEY")) == "PRI"
-                                        });
-                                    }
-
-                                    reader_GetTableData.Close();
+                                        Name = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_NAME")),
+                                        TypeName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("DATA_TYPE")),
+                                        DataType = 0,
+                                        IsNullable = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("IS_NULLABLE")) != "NO",
+                                        OrdinalPosition = reader_GetTableData.GetInt32(reader_GetTableData.GetOrdinal("ORDINAL_POSITION")),
+                                        IsPrimaryKey = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("COLUMN_KEY")) == "PRI",
+                                        TableName = reader_GetTableData.GetString(reader_GetTableData.GetOrdinal("TABLE_NAME"))
+                                    });
                                 }
+
+                                reader_GetTableData.Close();
                             }
-
-                            if (table.Columns == null || !table.Columns.Any()) { continue; }
-
-                            tables.Add(table);
                         }
+
+                        var tables = dbTablesColumns.GroupBy(x => x.TableName).ToDictionary(x => x.Key, x => x.ToList())
+                            .Select(x => new CORE_DB_TABLE
+                            {
+                                Name = x.Key,
+                                Columns = x.Value.ToList()
+                            }).ToList();
 
                         if (tables == null || !tables.Any()) { Console.WriteLine("No table data was found to generate ORMs"); return false; }
 

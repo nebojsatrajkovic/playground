@@ -1,29 +1,25 @@
 ﻿using Core.DB.Plugin.${DB_TYPE}.Database;
 using Core.DB.Plugin.Shared.Attributes;
-using Core.DB.Plugin.Shared.Interfaces;
-using System.Reflection;
 
 namespace ${NAMESPACE};
 
 public static class ${TABLE_NAME}
 {
-    public class Model : IDB_Table
+    public static DBTable<ORM, QueryParameter> Database { get; }
+
+    static ${TABLE_NAME}()
+    {
+        Database = new DBTable<ORM, QueryParameter>();
+    }
+
+    public class ORM
     {
         [CORE_DB_SQL_PrimaryKey]
 ${MODEL_ATTRIBUTES}
-        public PropertyInfo? GetPrimaryKeyProperty()
-        {
-            return GetType().GetProperty("${PRIMARY_KEY_ATTRIBUTE}");
-        }
     }
 
-    public class Query
+    public class QueryParameter
     {
 ${QUERY_ATTRIBUTES}
-    }
-
-    public class DB : ADBTable<Model, Query>
-    {
-
     }
 }

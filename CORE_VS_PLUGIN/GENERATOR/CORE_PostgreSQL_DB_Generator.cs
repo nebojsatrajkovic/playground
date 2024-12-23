@@ -13,6 +13,8 @@ using System.Text;
 
 namespace CORE_VS_PLUGIN.GENERATOR
 {
+    // TODO improve loading the database tables and their columns - do the same as for the mysql generator (single db query)
+
     public static class CORE_PostgreSQL_DB_Generator
     {
         public static bool GenerateORMs_From_PostgreSQL(string configurationFilePath)
