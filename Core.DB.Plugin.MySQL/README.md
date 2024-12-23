@@ -1,1 +1,0 @@
-#Disable STRICT_TRANS_TABLES, NO_ZERO_DATE, NO_ZERO_IN_DATE in mysql.ini or mysql.cnf
