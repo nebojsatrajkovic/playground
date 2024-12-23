@@ -1,34 +1,37 @@
-﻿using Core.DB.Plugin.Shared.Attributes;
-using Core.DB.Plugin.Shared.Extensions;
-using Core.DB.Plugin.Shared.Interfaces;
+﻿using Core.DB.Plugin.Shared.Extensions;
 using Core.DB.Plugin.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
-using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Reflection;
 using System.Text;
 
-namespace Core.DB.Plugin.MSSQL.Database
+namespace Core.DB.Plugin.MySQL.Database
 {
     /// <summary>
-    /// Abstract class that contains all the logic for database table ORM manipulation
+    /// Contains all the logic for database table ORM manipulation
     /// </summary>
     /// <typeparam name="T1">Represents main database table model</typeparam>
     /// <typeparam name="T2">Represents model for data querying</typeparam>
-    public class ADBTable<T1, T2> where T1 : IDB_Table, new() where T2 : new()
+    public class DBTable<T1, T2> where T1 : new() where T2 : new()
     {
+        readonly string TableName = typeof(T1).DeclaringType?.Name ?? typeof(T1).Name;
+        readonly PropertyInfo? PrimaryKeyProperty = typeof(T1).GetPrimaryKeyProperty();
+        readonly List<PropertyInfo> Model_FilteredProperties = typeof(T1).GetFilteredProperties();
+        readonly List<PropertyInfo> Query_FilteredProperties = typeof(T2).GetFilteredProperties();
+
         /// <summary>
         /// Search all table entries that match values passed by parameter
         /// </summary>
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static List<T1> Search(CORE_DB_Connection dbConnection, T2 parameter)
+        public List<T1> Search(CORE_DB_Connection dbConnection, T2 parameter)
         {
             var result = new List<T1>();
 
-            var queryString = $"SELECT * FROM [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] {GetWhereCondition(parameter)}";
+            var queryString = $"SELECT * FROM {TableName} {GetWhereCondition(parameter)}";
 
-            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
+            using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
             using var reader = command.ExecuteReader();
 
@@ -38,11 +41,29 @@ namespace Core.DB.Plugin.MSSQL.Database
                 {
                     var item = new T1();
 
-                    var properties = typeof(T1).GetFilteredProperties();
-
-                    foreach (var property in properties)
+                    foreach (var property in Model_FilteredProperties)
                     {
-                        property.SetValue(item, reader[property.Name]);
+                        if (property.PropertyType == typeof(bool))
+                        {
+                            var value = reader[property.Name];
+
+                            if (value is sbyte val)
+                            {
+                                var boolValue = val > 0;
+
+                                property.SetValue(item, boolValue);
+                            }
+                            else
+                            {
+                                // not supported currently
+
+                                property.SetValue(item, false);
+                            }
+                        }
+                        else
+                        {
+                            property.SetValue(item, reader[property.Name]);
+                        }
                     }
 
                     result.Add(item);
@@ -64,7 +85,7 @@ namespace Core.DB.Plugin.MSSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int SoftDelete(CORE_DB_Connection dbConnection, T1 parameter)
+        public int SoftDelete(CORE_DB_Connection dbConnection, T1 parameter)
         {
             return SoftDelete(dbConnection, new List<T1> { parameter });
         }
@@ -75,23 +96,21 @@ namespace Core.DB.Plugin.MSSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int SoftDelete(CORE_DB_Connection dbConnection, List<T1> parameter)
+        public int SoftDelete(CORE_DB_Connection dbConnection, List<T1> parameter)
         {
             int result = 0;
 
             if (parameter.HasValue())
             {
-                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
-
-                if (property != null)
+                if (PrimaryKeyProperty != null)
                 {
-                    var ids = parameter.Select(x => property.GetValue(x, null)).ToList();
+                    var ids = parameter.Select(x => PrimaryKeyProperty.GetValue(x, null)).ToList();
 
-                    if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
+                    if (ids.HasValue() && DBTable<T1, T2>.GetParameterValues(ids, out var parameterValues))
                     {
-                        var queryString = $"UPDATE [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] SET [IsDeleted] = 1 WHERE {property.Name} IN ({parameterValues})";
+                        var queryString = $"UPDATE {TableName} SET IsDeleted = 1 WHERE {PrimaryKeyProperty.Name} IN ({parameterValues})";
 
-                        using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
+                        using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
                         result = command.ExecuteNonQuery();
                     }
@@ -108,11 +127,11 @@ namespace Core.DB.Plugin.MSSQL.Database
         /// <param name="parameter"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static int SoftDelete(CORE_DB_Connection dbConnection, T2 parameter)
+        public int SoftDelete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            var queryString = $"UPDATE [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] SET [IsDeleted] = 1 {GetWhereCondition(parameter)}";
+            var queryString = $"UPDATE {TableName} SET IsDeleted = 1 {GetWhereCondition(parameter)}";
 
-            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
+            using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
 
@@ -129,7 +148,7 @@ namespace Core.DB.Plugin.MSSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int Delete(CORE_DB_Connection dbConnection, T1 parameter)
+        public int Delete(CORE_DB_Connection dbConnection, T1 parameter)
         {
             return Delete(dbConnection, new List<T1> { parameter });
         }
@@ -141,23 +160,21 @@ namespace Core.DB.Plugin.MSSQL.Database
         /// <param name="parameter"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static int Delete(CORE_DB_Connection dbConnection, List<T1> parameter)
+        public int Delete(CORE_DB_Connection dbConnection, List<T1> parameter)
         {
             int result = 0;
 
             if (parameter.HasValue())
             {
-                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
-
-                if (property != null)
+                if (PrimaryKeyProperty != null)
                 {
-                    var ids = parameter.Select(x => property.GetValue(x, null)).ToList();
+                    var ids = parameter.Select(x => PrimaryKeyProperty.GetValue(x, null)).ToList();
 
-                    if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
+                    if (ids.HasValue() && DBTable<T1, T2>.GetParameterValues(ids, out var parameterValues))
                     {
-                        var queryString = $"DELETE FROM [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] WHERE {property.Name} IN ({parameterValues})";
+                        var queryString = $"DELETE FROM {TableName} WHERE {PrimaryKeyProperty.Name} IN ({parameterValues})";
 
-                        using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
+                        using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
                         result = command.ExecuteNonQuery();
                     }
@@ -173,11 +190,11 @@ namespace Core.DB.Plugin.MSSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int Delete(CORE_DB_Connection dbConnection, T2 parameter)
+        public int Delete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            var queryString = $"DELETE FROM [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] {GetWhereCondition(parameter)}";
+            var queryString = $"DELETE FROM {TableName} {GetWhereCondition(parameter)}";
 
-            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
+            using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
 
@@ -187,53 +204,40 @@ namespace Core.DB.Plugin.MSSQL.Database
         #endregion hard delete
 
         /// <summary>
-        /// isUsingPrimaryKeyAutoIncrement specifies that MSSQL database is configured to automatically generate primary key values so they should be excluded from insert statement
+        /// Saves the entry in the database.
         /// </summary>
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
-        /// <param name="isUsingPrimaryKeyAutoIncrement"></param>
         /// <returns></returns>
-        public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter, bool isUsingPrimaryKeyAutoIncrement = false)
+        /// <exception cref="Exception"></exception>
+        public T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
         {
-            var primaryKeyProperty = parameter.GetPrimaryKeyProperty() ?? throw new Exception($"Primary key property not found for type {parameter.GetType().Name}");
+            var primaryKeyProperty = PrimaryKeyProperty ?? throw new Exception($"Primary key property not found for type {typeof(T1).Name}");
 
-            var usingStatement = GetUsingPartForMergeStatement(parameter);
-            var (matched, notMatchedColumns, notMatchedValues) = OnDuplicateKeyStatement(primaryKeyProperty, isUsingPrimaryKeyAutoIncrement);
+            var (columns, values) = GetColumnsAndValues(parameter);
+            var onDuplicateKeyStatement = OnDuplicateKeyStatement();
 
-            var queryString = $"MERGE INTO [dbo].[{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}] AS target"
-                +
-                $" USING (SELECT {usingStatement}) as source"
-                +
-                $" ON target.[{primaryKeyProperty.Name}] = source.[{primaryKeyProperty.Name}]"
-                +
-                $" WHEN MATCHED THEN UPDATE SET {matched}"
-                +
-                $" WHEN NOT MATCHED THEN INSERT ({notMatchedColumns}) VALUES ({notMatchedValues}); SELECT SCOPE_IDENTITY();";
+            var queryString = $"INSERT INTO {TableName} ({columns}) VALUES ({values}) as statement ON DUPLICATE KEY UPDATE {onDuplicateKeyStatement}";
 
-            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
+            using var command = new MySqlCommand(queryString, (MySqlConnection)dbConnection.Connection, (MySqlTransaction)dbConnection.Transaction);
 
-            var result = command.ExecuteScalar();
+            var result = command.ExecuteNonQuery();
 
-            if (result != null && result != DBNull.Value)
-            {
-                var id = Convert.ChangeType(result, primaryKeyProperty.PropertyType);
+            var id = Convert.ChangeType(command.LastInsertedId, primaryKeyProperty.PropertyType);
 
-                primaryKeyProperty.SetValue(parameter, id);
-            }
+            primaryKeyProperty.SetValue(parameter, id);
 
             return parameter;
         }
 
-        internal static (string columns, string values) GetColumnsAndValues(T1 parameter)
+        internal (string columns, string values) GetColumnsAndValues(T1 parameter)
         {
-            var properties = typeof(T1).GetFilteredProperties();
-
             var columnsBuilder = new StringBuilder();
             var valuesBuilder = new StringBuilder();
 
-            foreach (var property in properties)
+            foreach (var property in Model_FilteredProperties)
             {
-                columnsBuilder.Append($"[{property.Name}], ");
+                columnsBuilder.Append($"{property.Name}, ");
 
                 var value = property.GetValue(parameter, null);
 
@@ -253,7 +257,7 @@ namespace Core.DB.Plugin.MSSQL.Database
                         valueType == typeof(float) ||
                         valueType == typeof(decimal) ||
                         valueType == typeof(int)
-                )
+                        )
                 {
                     segment = $"{value}";
                 }
@@ -284,103 +288,28 @@ namespace Core.DB.Plugin.MSSQL.Database
             return (columns, values);
         }
 
-        internal static string GetUsingPartForMergeStatement(T1 parameter)
+        internal string OnDuplicateKeyStatement()
         {
-            var properties = typeof(T1).GetFilteredProperties();
-
             var sb = new StringBuilder();
 
-            foreach (var property in properties)
+            foreach (var property in Model_FilteredProperties)
             {
-                var value = property.GetValue(parameter, null);
-
-                string segment;
-                if (value == null)
-                {
-                    sb.Append($"NULL as [{property.Name}], ");
-
-                    continue;
-                }
-
-                var valueType = value.GetType();
-
-                if
-                (
-                    valueType == typeof(double) ||
-                    valueType == typeof(float) ||
-                    valueType == typeof(decimal) ||
-                    valueType == typeof(int)
-                )
-                {
-                    segment = $"{value}";
-                }
-                else if (valueType == typeof(DateTime))
-                {
-                    segment = $"'{(DateTime)value:yyyy-MM-dd HH:mm:ss}'";
-                }
-                else if (valueType == typeof(bool))
-                {
-                    segment = (bool)value ? "1" : "0";
-                }
-                else
-                {
-                    segment = $"'{value}'";
-                }
-
-                sb.Append($"{segment} as [{property.Name}], ");
+                sb.Append($"{property.Name} = statement.{property.Name}, ");
             }
 
-            var result = sb.ToString();
-            result = result[..^2];
+            var statement = sb.ToString();
+            statement = statement[..^2];
 
-            return result;
+            return statement;
         }
 
-        internal static (string matched, string notMatchedColumns, string notMatchedValues) OnDuplicateKeyStatement(PropertyInfo primaryKeyProperty, bool isUsingPrimaryKeyAutoIncrement)
-        {
-            var properties = typeof(T1).GetFilteredProperties();
-
-            var sbMatched = new StringBuilder();
-            var sbNotMatchedColumns = new StringBuilder();
-            var sbNotMatchedValues = new StringBuilder();
-
-            foreach (var property in properties)
-            {
-                var isPrimaryKey = property == primaryKeyProperty;
-
-                if (!isPrimaryKey)
-                {
-                    sbMatched.Append($"target.{property.Name} = source.{property.Name}, ");
-                }
-
-                if (!(isPrimaryKey && isUsingPrimaryKeyAutoIncrement) || !isPrimaryKey)
-                {
-                    sbNotMatchedColumns.Append($"{property.Name}, ");
-                    sbNotMatchedValues.Append($"source.{property.Name}, ");
-                }
-            }
-
-            var matched = sbMatched.ToString();
-            matched = matched[..^2];
-
-            var notMatchedColumns = sbNotMatchedColumns.ToString();
-            notMatchedColumns = notMatchedColumns[..^2];
-
-            var notMatchedValues = sbNotMatchedValues.ToString();
-            notMatchedValues = notMatchedValues[..^2];
-
-            return (matched, notMatchedColumns, notMatchedValues);
-        }
-
-        internal static string GetWhereCondition(T2 parameter)
+        internal string GetWhereCondition(T2 parameter)
         {
             if (parameter == null) { return string.Empty; }
 
             var builder = new StringBuilder();
 
-            var properties = parameter.GetType().GetFilteredProperties();
-
-            foreach (var property in properties)
+            foreach (var property in Query_FilteredProperties)
             {
                 if (property.GetValue(parameter, null) != null)
                 {

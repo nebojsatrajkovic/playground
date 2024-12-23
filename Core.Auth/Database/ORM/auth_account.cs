@@ -1,13 +1,18 @@
 using Core.DB.Plugin.MySQL.Database;
 using Core.DB.Plugin.Shared.Attributes;
-using Core.DB.Plugin.Shared.Interfaces;
-using System.Reflection;
 
 namespace Core.Auth.Database.ORM;
 
 public static class auth_account
 {
-    public class Model : IDB_Table
+    public static DBTable<Model, Query> DB { get; }
+
+    static auth_account()
+    {
+        DB = new DBTable<Model, Query>();
+    }
+
+    public class Model
     {
         [CORE_DB_SQL_PrimaryKey]
         public int auth_account_id { get; set; }
@@ -19,11 +24,6 @@ public static class auth_account
         public DateTime modified_at { get; set; }
         public int? tenant_id { get; set; }
         public bool is_verified { get; set; }
-
-        public PropertyInfo? GetPrimaryKeyProperty()
-        {
-            return GetType().GetProperty("auth_account_id");
-        }
     }
 
     public class Query
@@ -37,11 +37,6 @@ public static class auth_account
         public DateTime? modified_at { get; set; } = null;
         public int? tenant_id { get; set; } = null;
         public bool? is_verified { get; set; } = null;
-
-    }
-
-    public class DB : ADBTable<Model, Query>
-    {
 
     }
 }

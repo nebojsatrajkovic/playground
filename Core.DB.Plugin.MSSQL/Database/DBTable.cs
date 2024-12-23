@@ -1,33 +1,37 @@
-﻿using Core.DB.Plugin.Shared.Attributes;
-using Core.DB.Plugin.Shared.Extensions;
-using Core.DB.Plugin.Shared.Interfaces;
+﻿using Core.DB.Plugin.Shared.Extensions;
 using Core.DB.Plugin.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
-using Npgsql;
+using System.Data.SqlClient;
+using System.Reflection;
 using System.Text;
 
-namespace Core.DB.Plugin.PostgreSQL.Database
+namespace Core.DB.Plugin.MSSQL.Database
 {
     /// <summary>
-    /// Abstract class that contains all the logic for database table ORM manipulation
+    /// Contains all the logic for database table ORM manipulation
     /// </summary>
     /// <typeparam name="T1">Represents main database table model</typeparam>
     /// <typeparam name="T2">Represents model for data querying</typeparam>
-    public class ADBTable<T1, T2> where T1 : IDB_Table, new() where T2 : new()
+    public class DBTable<T1, T2> where T1 : new() where T2 : new()
     {
+        readonly string TableName = typeof(T1).DeclaringType?.Name ?? typeof(T1).Name;
+        readonly PropertyInfo? PrimaryKeyProperty = typeof(T1).GetPrimaryKeyProperty();
+        readonly List<PropertyInfo> Model_FilteredProperties = typeof(T1).GetFilteredProperties();
+        readonly List<PropertyInfo> Query_FilteredProperties = typeof(T2).GetFilteredProperties();
+
         /// <summary>
         /// Search all table entries that match values passed by parameter
         /// </summary>
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static List<T1> Search(CORE_DB_Connection dbConnection, T2 parameter)
+        public List<T1> Search(CORE_DB_Connection dbConnection, T2 parameter)
         {
             var result = new List<T1>();
 
-            var queryString = $"SELECT * FROM \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" {GetWhereCondition(parameter)}";
+            var queryString = $"SELECT * FROM [dbo].[{TableName}] {GetWhereCondition(parameter)}";
 
-            using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
+            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
             using var reader = command.ExecuteReader();
 
@@ -37,7 +41,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                 {
                     var item = new T1();
 
-                    var properties = typeof(T1).GetFilteredProperties();
+                    var properties = Model_FilteredProperties;
 
                     foreach (var property in properties)
                     {
@@ -63,7 +67,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int SoftDelete(CORE_DB_Connection dbConnection, T1 parameter)
+        public int SoftDelete(CORE_DB_Connection dbConnection, T1 parameter)
         {
             return SoftDelete(dbConnection, new List<T1> { parameter });
         }
@@ -74,23 +78,21 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int SoftDelete(CORE_DB_Connection dbConnection, List<T1> parameter)
+        public int SoftDelete(CORE_DB_Connection dbConnection, List<T1> parameter)
         {
             int result = 0;
 
             if (parameter.HasValue())
             {
-                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
-
-                if (property != null)
+                if (PrimaryKeyProperty != null)
                 {
-                    var ids = parameter.Select(x => property.GetValue(x, null)).ToList();
+                    var ids = parameter.Select(x => PrimaryKeyProperty.GetValue(x, null)).ToList();
 
-                    if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
+                    if (ids.HasValue() && DBTable<T1, T2>.GetParameterValues(ids, out var parameterValues))
                     {
-                        var queryString = $"UPDATE \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" SET IsDeleted = 1 WHERE \"{property.Name}\" IN ({parameterValues})";
+                        var queryString = $"UPDATE [dbo].[{TableName}] SET [IsDeleted] = 1 WHERE {PrimaryKeyProperty.Name} IN ({parameterValues})";
 
-                        using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
+                        using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
                         result = command.ExecuteNonQuery();
                     }
@@ -107,11 +109,11 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <param name="parameter"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static int SoftDelete(CORE_DB_Connection dbConnection, T2 parameter)
+        public int SoftDelete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            var queryString = $"UPDATE \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" SET IsDeleted = 1 {GetWhereCondition(parameter)}";
+            var queryString = $"UPDATE [dbo].[{TableName}] SET [IsDeleted] = 1 {GetWhereCondition(parameter)}";
 
-            using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
+            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
 
@@ -128,7 +130,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int Delete(CORE_DB_Connection dbConnection, T1 parameter)
+        public int Delete(CORE_DB_Connection dbConnection, T1 parameter)
         {
             return Delete(dbConnection, new List<T1> { parameter });
         }
@@ -140,23 +142,21 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <param name="parameter"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static int Delete(CORE_DB_Connection dbConnection, List<T1> parameter)
+        public int Delete(CORE_DB_Connection dbConnection, List<T1> parameter)
         {
             int result = 0;
 
             if (parameter.HasValue())
             {
-                var property = typeof(T1).GetProperties().FirstOrDefault(x => x.CustomAttributes.HasValue() && x.CustomAttributes.Any(a => a.AttributeType == typeof(CORE_DB_SQL_PrimaryKey)));
-
-                if (property != null)
+                if (PrimaryKeyProperty != null)
                 {
-                    var ids = parameter.Select(x => property.GetValue(x, null)).ToList();
+                    var ids = parameter.Select(x => PrimaryKeyProperty.GetValue(x, null)).ToList();
 
-                    if (ids.HasValue() && GetParameterValues(ids, out var parameterValues))
+                    if (ids.HasValue() && DBTable<T1, T2>.GetParameterValues(ids, out var parameterValues))
                     {
-                        var queryString = $"DELETE FROM \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" WHERE \"{property.Name}\" IN ({parameterValues})";
+                        var queryString = $"DELETE FROM [dbo].[{TableName}] WHERE {PrimaryKeyProperty.Name} IN ({parameterValues})";
 
-                        using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
+                        using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
                         result = command.ExecuteNonQuery();
                     }
@@ -172,11 +172,11 @@ namespace Core.DB.Plugin.PostgreSQL.Database
         /// <param name="dbConnection"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public static int Delete(CORE_DB_Connection dbConnection, T2 parameter)
+        public int Delete(CORE_DB_Connection dbConnection, T2 parameter)
         {
-            var queryString = $"DELETE FROM {typeof(T1).DeclaringType?.Name ?? typeof(T1).Name} {GetWhereCondition(parameter)}";
+            var queryString = $"DELETE FROM [dbo].[{TableName}] {GetWhereCondition(parameter)}";
 
-            using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
+            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
             var result = command.ExecuteNonQuery();
 
@@ -185,30 +185,31 @@ namespace Core.DB.Plugin.PostgreSQL.Database
 
         #endregion hard delete
 
-        public static T1 Save(CORE_DB_Connection dbConnection, T1 parameter)
+        /// <summary>
+        /// isUsingPrimaryKeyAutoIncrement specifies that MSSQL database is configured to automatically generate primary key values so they should be excluded from insert statement
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        /// <param name="parameter"></param>
+        /// <param name="isUsingPrimaryKeyAutoIncrement"></param>
+        /// <returns></returns>
+        public T1 Save(CORE_DB_Connection dbConnection, T1 parameter, bool isUsingPrimaryKeyAutoIncrement = false)
         {
-            var primaryKeyProperty = parameter.GetPrimaryKeyProperty() ?? throw new Exception($"Primary key property not found for type {parameter.GetType().Name}");
+            var primaryKeyProperty = PrimaryKeyProperty ?? throw new Exception($"Primary key property not found for type {typeof(T1).Name}");
 
-            object? a = primaryKeyProperty.GetValue(parameter, null);
-            object? b = DefaultForType(primaryKeyProperty.PropertyType);
+            var usingStatement = GetUsingPartForMergeStatement(parameter);
+            var (matched, notMatchedColumns, notMatchedValues) = OnDuplicateKeyStatement(primaryKeyProperty, isUsingPrimaryKeyAutoIncrement);
 
-            string queryString;
+            var queryString = $"MERGE INTO [dbo].[{TableName}] AS target"
+                +
+                $" USING (SELECT {usingStatement}) as source"
+                +
+                $" ON target.[{primaryKeyProperty.Name}] = source.[{primaryKeyProperty.Name}]"
+                +
+                $" WHEN MATCHED THEN UPDATE SET {matched}"
+                +
+                $" WHEN NOT MATCHED THEN INSERT ({notMatchedColumns}) VALUES ({notMatchedValues}); SELECT SCOPE_IDENTITY();";
 
-            if (a != null && b != null && a.Equals(b))
-            {
-                var (columns, values) = GetColumnsAndValues(parameter, true);
-
-                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) RETURNING id;";
-            }
-            else
-            {
-                var (columns, values) = GetColumnsAndValues(parameter, false);
-                var onDuplicateKeyStatement = OnDuplicateKeyStatement();
-
-                queryString = $"INSERT INTO \"{typeof(T1).DeclaringType?.Name ?? typeof(T1).Name}\" ({columns}) VALUES ({values}) ON CONFLICT ({primaryKeyProperty.Name}) DO UPDATE SET {onDuplicateKeyStatement} RETURNING id;";
-            }
-
-            using var command = new NpgsqlCommand(queryString, (NpgsqlConnection)dbConnection.Connection, (NpgsqlTransaction)dbConnection.Transaction);
+            using var command = new SqlCommand(queryString, (SqlConnection)dbConnection.Connection, (SqlTransaction)dbConnection.Transaction);
 
             var result = command.ExecuteScalar();
 
@@ -222,21 +223,14 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             return parameter;
         }
 
-        internal static object? DefaultForType(Type targetType)
+        internal (string columns, string values) GetColumnsAndValues(T1 parameter)
         {
-            return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
-        }
-
-        internal static (string columns, string values) GetColumnsAndValues(T1 parameter, bool isAutoIncrement)
-        {
-            var properties = isAutoIncrement ? typeof(T1).GetFilteredProperties_ForAutoIncrementSave() : typeof(T1).GetFilteredProperties();
-
             var columnsBuilder = new StringBuilder();
             var valuesBuilder = new StringBuilder();
 
-            foreach (var property in properties)
+            foreach (var property in Model_FilteredProperties)
             {
-                columnsBuilder.Append($"\"{property.Name}\", ");
+                columnsBuilder.Append($"[{property.Name}], ");
 
                 var value = property.GetValue(parameter, null);
 
@@ -256,7 +250,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                         valueType == typeof(float) ||
                         valueType == typeof(decimal) ||
                         valueType == typeof(int)
-                        )
+                )
                 {
                     segment = $"{value}";
                 }
@@ -266,16 +260,7 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                 }
                 else if (valueType == typeof(bool))
                 {
-                    segment = (bool)value ? "true" : "false";
-                }
-                else if (valueType == typeof(string))
-                {
-                    if (((string)value).Contains("'"))
-                    {
-                        value = ((string)value).Replace("'", "''");
-                    }
-
-                    segment = $"'{value}'";
+                    segment = (bool)value ? "1" : "0";
                 }
                 else
                 {
@@ -296,32 +281,97 @@ namespace Core.DB.Plugin.PostgreSQL.Database
             return (columns, values);
         }
 
-        internal static string OnDuplicateKeyStatement()
+        internal string GetUsingPartForMergeStatement(T1 parameter)
         {
-            var properties = typeof(T1).GetFilteredProperties();
-
             var sb = new StringBuilder();
 
-            foreach (var property in properties)
+            foreach (var property in Model_FilteredProperties)
             {
-                sb.Append($"{property.Name} = excluded.{property.Name}, ");
+                var value = property.GetValue(parameter, null);
+
+                string segment;
+                if (value == null)
+                {
+                    sb.Append($"NULL as [{property.Name}], ");
+
+                    continue;
+                }
+
+                var valueType = value.GetType();
+
+                if
+                (
+                    valueType == typeof(double) ||
+                    valueType == typeof(float) ||
+                    valueType == typeof(decimal) ||
+                    valueType == typeof(int)
+                )
+                {
+                    segment = $"{value}";
+                }
+                else if (valueType == typeof(DateTime))
+                {
+                    segment = $"'{(DateTime)value:yyyy-MM-dd HH:mm:ss}'";
+                }
+                else if (valueType == typeof(bool))
+                {
+                    segment = (bool)value ? "1" : "0";
+                }
+                else
+                {
+                    segment = $"'{value}'";
+                }
+
+                sb.Append($"{segment} as [{property.Name}], ");
             }
 
-            var statement = sb.ToString();
-            statement = statement[..^2];
+            var result = sb.ToString();
+            result = result[..^2];
 
-            return statement;
+            return result;
         }
 
-        internal static string GetWhereCondition(T2 parameter)
+        internal (string matched, string notMatchedColumns, string notMatchedValues) OnDuplicateKeyStatement(PropertyInfo primaryKeyProperty, bool isUsingPrimaryKeyAutoIncrement)
+        {
+            var sbMatched = new StringBuilder();
+            var sbNotMatchedColumns = new StringBuilder();
+            var sbNotMatchedValues = new StringBuilder();
+
+            foreach (var property in Model_FilteredProperties)
+            {
+                var isPrimaryKey = property == primaryKeyProperty;
+
+                if (!isPrimaryKey)
+                {
+                    sbMatched.Append($"target.{property.Name} = source.{property.Name}, ");
+                }
+
+                if (!(isPrimaryKey && isUsingPrimaryKeyAutoIncrement) || !isPrimaryKey)
+                {
+                    sbNotMatchedColumns.Append($"{property.Name}, ");
+                    sbNotMatchedValues.Append($"source.{property.Name}, ");
+                }
+            }
+
+            var matched = sbMatched.ToString();
+            matched = matched[..^2];
+
+            var notMatchedColumns = sbNotMatchedColumns.ToString();
+            notMatchedColumns = notMatchedColumns[..^2];
+
+            var notMatchedValues = sbNotMatchedValues.ToString();
+            notMatchedValues = notMatchedValues[..^2];
+
+            return (matched, notMatchedColumns, notMatchedValues);
+        }
+
+        internal string GetWhereCondition(T2 parameter)
         {
             if (parameter == null) { return string.Empty; }
 
             var builder = new StringBuilder();
 
-            var properties = parameter.GetType().GetFilteredProperties();
-
-            foreach (var property in properties)
+            foreach (var property in Query_FilteredProperties)
             {
                 if (property.GetValue(parameter, null) != null)
                 {
@@ -336,17 +386,17 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                     {
                         var dateParameter = ((DateTime?)property.GetValue(parameter, null))?.ToString("yyyy-MM-dd HH:mm:ss") ?? "0";
 
-                        segment = $"\"{property.Name}\" = '{dateParameter}'";
+                        segment = $"{property.Name} = '{dateParameter}'";
                     }
                     else if (property.PropertyType == typeof(bool?))
                     {
                         if ((bool?)property.GetValue(parameter, null) == true)
                         {
-                            segment = $"\"{property.Name}\" = true";
+                            segment = $"{property.Name} = 1";
                         }
                         else
                         {
-                            segment = $"\"{property.Name}\" = false";
+                            segment = $"{property.Name} = 0";
                         }
                     }
                     else if
@@ -357,11 +407,11 @@ namespace Core.DB.Plugin.PostgreSQL.Database
                         property.PropertyType == typeof(int?)
                         )
                     {
-                        segment = $"\"{property.Name}\" = {property.GetValue(parameter, null)}";
+                        segment = $"{property.Name} = {property.GetValue(parameter, null)}";
                     }
                     else
                     {
-                        segment = $"\"{property.Name}\" = '{property.GetValue(parameter, null)}'";
+                        segment = $"{property.Name} = '{property.GetValue(parameter, null)}'";
                     }
 
                     segment = $"{segment} AND ";

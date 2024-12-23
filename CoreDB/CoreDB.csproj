@@ -7,14 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
-    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
+    <Compile Remove="Database\**" />
+    <Compile Remove="Services\**" />
+    <EmbeddedResource Remove="Database\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Database\**" />
+    <None Remove="Services\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Database\DB\" />
-    <Folder Include="Database\ORM\" />
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
+    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
   </ItemGroup>
 
 </Project>
