@@ -68,7 +68,7 @@ namespace Core.Shared.Models
         {
             Status = CORE_OperationStatus.ERROR;
             OccurredException = ex;
-            Message = message ?? Status.ToString();
+            Message = message ?? ex.Message;
         }
     }
 
