@@ -10,7 +10,7 @@ namespace Playground.Controllers
     public class CloudController : ControllerBase
     {
         [HttpPost("upload")]
-        public async Task<ResultOf<CORE_Cloud_FileMetadata>> Upload([FromQuery] Guid userAccountId, [FromQuery] Guid folderId)
+        public async Task<ResultOf<FileMetadata>> Upload([FromQuery] Guid userAccountId, [FromQuery] Guid folderId)
         {
             return await CloudService.UploadFile(HttpContext, folderId, userAccountId);
         }
@@ -18,7 +18,7 @@ namespace Playground.Controllers
         [HttpGet("download/{userAccountId}/{fileId}")]
         public async Task<IActionResult> Download(Guid userAccountID, Guid fileID)
         {
-            var metadata = new CORE_Cloud_FileMetadata(); // TODO load from DB, etc
+            var metadata = new FileMetadata(); // TODO load from DB, etc
 
             if (metadata == null) return NotFound("File not found.");
 

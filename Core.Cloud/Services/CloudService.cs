@@ -35,15 +35,15 @@ namespace Core.Cloud.Services
             // get folder details, sub-folders list, files list
         }
 
-        public static async Task<ResultOf<CORE_Cloud_FileMetadata>> UploadFile(HttpContext context, Guid folderID, Guid userAccountID)
+        public static async Task<ResultOf<FileMetadata>> UploadFile(HttpContext context, Guid folderID, Guid userAccountID)
         {
-            ResultOf<CORE_Cloud_FileMetadata> returnValue;
+            ResultOf<FileMetadata> returnValue;
 
             try
             {
                 if (!context.Request.ContentLength.HasValue || context.Request.ContentLength <= 0)
                 {
-                    return new ResultOf<CORE_Cloud_FileMetadata>(CORE_OperationStatus.FAILED, "Invalid file content.");
+                    return new ResultOf<FileMetadata>(CORE_OperationStatus.FAILED, "Invalid file content.");
                 }
 
                 var folderName = "TODO_folderName";
@@ -54,7 +54,7 @@ namespace Core.Cloud.Services
                 string fileName = context.Request.Headers["X-File-Name"].ToString();
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
-                    return new ResultOf<CORE_Cloud_FileMetadata>(CORE_OperationStatus.FAILED, "File name is missing.");
+                    return new ResultOf<FileMetadata>(CORE_OperationStatus.FAILED, "File name is missing.");
                 }
 
                 string safeFileName = Path.GetFileName(fileName); // avoid path traversal
@@ -76,7 +76,7 @@ namespace Core.Cloud.Services
                     throw;
                 }
 
-                var metadata = new CORE_Cloud_FileMetadata
+                var metadata = new FileMetadata
                 {
                     FileID = Guid.NewGuid(),
                     FileName = fileName,
@@ -88,13 +88,13 @@ namespace Core.Cloud.Services
 
                 // TODO store metadata
 
-                returnValue = new ResultOf<CORE_Cloud_FileMetadata>(metadata);
+                returnValue = new ResultOf<FileMetadata>(metadata);
             }
             catch (Exception ex)
             {
                 logger.Error("Failed upload file: ", ex);
 
-                returnValue = new ResultOf<CORE_Cloud_FileMetadata>(ex);
+                returnValue = new ResultOf<FileMetadata>(ex);
             }
 
             return returnValue;

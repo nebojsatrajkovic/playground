@@ -1,6 +1,6 @@
 ﻿namespace Core.Cloud.Models
 {
-    public class CORE_Cloud_FileMetadata
+    public class FileMetadata
     {
         public Guid FileID { get; set; }
         public string FileName { get; set; }
