@@ -1,5 +1,4 @@
 ﻿using Core.Auth;
-using Core.Shared.Configuration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Playground.Controllers
@@ -12,8 +11,6 @@ namespace Playground.Controllers
         [Route("example")]
         public object Example()
         {
-            AUTH.ConfigureConnectionString(CORE_Configuration.Database.ConnectionString);
-
             //var result = AUTH.CreateOrUpdateTenant(new CreateOrUpdateTenant_Request
             //{
             //    Name = "My remote company"

@@ -26,5 +26,7 @@ namespace Core.Shared.Controllers
         }
 
         // NOTE: example usage in some service: LongPollingRequest.Update(LongPolling_Channel.ExampleChannel.Description(), Guid.NewGuid().ToString());
+
+        // builder.Services.AddMvc().AddApplicationPart(typeof(Core.Shared.Controllers.LongPollingController).Assembly);
     }
 }
