@@ -1,7 +1,7 @@
-﻿using Core.Auth.Database.DB.Accounts;
-using Core.Auth.Database.ORM;
+﻿using Core.Auth.Database.ORM;
 using Core.Auth.Models.Tenant;
 using Core.Shared.Models;
+using Core.Shared.Services;
 using Core.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
@@ -42,12 +42,16 @@ namespace Core.Auth.Services
 
                 auth_account.Database.Save(connection, account);
 
+                var sendRegistrationEmail = EmailService.SendEmail("", [parameter.Email], "", "");
+
+                if (!sendRegistrationEmail.Succeeded)
+                {
+                    return new ResultOf<RegisterTenant_Response>(sendRegistrationEmail);
+                }
+
                 // generate confirmation email with token and define expiration (24h)
 
                 // TODO send email confirmation - request user to confirm his email address
-
-                // TODO remove
-                var dbAcc = Get_Accounts_for_ID.Invoke(connection.Connection, connection.Transaction, new P_GAfID { AccountID = 1 });
 
                 returnValue = new ResultOf<RegisterTenant_Response>(new RegisterTenant_Response
                 {

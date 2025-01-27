@@ -12,16 +12,28 @@ namespace Core.Shared.Models
 
     public abstract class AResultOf
     {
+        public bool Succeeded
+        {
+            get
+            {
+                return Status == CORE_OperationStatus.SUCCESS;
+            }
+        }
+
         public CORE_OperationStatus Status { get; set; }
         public string? Message { get; set; }
-    }
-
-    public class ResultOf<T> : AResultOf
-    {
-        public T? OperationResult { get; set; }
         [JsonIgnore]
         public Exception? OccurredException { get; set; }
+        public object? NestedResult { get; set; }
+    }
 
+    public abstract class AResultOf<T> : AResultOf
+    {
+        public T? OperationResult { get; set; }
+    }
+
+    public class ResultOf<T> : AResultOf<T>
+    {
         public ResultOf(T? operationResult)
         {
             Status = CORE_OperationStatus.SUCCESS;
@@ -70,6 +82,30 @@ namespace Core.Shared.Models
             OccurredException = ex;
             Message = message ?? ex.Message;
         }
+
+        public ResultOf(AResultOf resultOf)
+        {
+            Status = resultOf.Status;
+            Message = resultOf.Message;
+            NestedResult = resultOf;
+        }
+
+        public ResultOf(AResultOf<T> resultOf)
+        {
+            Status = resultOf.Status;
+            Message = resultOf.Message;
+            NestedResult = resultOf;
+        }
+
+        public ResultOf ToResultOf()
+        {
+            return new ResultOf(this.Status)
+            {
+                Message = this.Message,
+                NestedResult = this.NestedResult,
+                OccurredException = this.OccurredException
+            };
+        }
     }
 
     public class ResultOf : AResultOf
@@ -84,6 +120,27 @@ namespace Core.Shared.Models
         {
             Status = status;
             Message = message ?? status.ToString();
+        }
+
+        public ResultOf(Exception ex)
+        {
+            Status = CORE_OperationStatus.ERROR;
+            OccurredException = ex;
+            Message = ex.Message;
+        }
+
+        public ResultOf(Exception ex, string message)
+        {
+            Status = CORE_OperationStatus.ERROR;
+            OccurredException = ex;
+            Message = message ?? ex.Message;
+        }
+
+        public ResultOf(AResultOf resultOf)
+        {
+            Status = resultOf.Status;
+            Message = resultOf.Message;
+            NestedResult = resultOf;
         }
     }
 }
