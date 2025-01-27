@@ -1,46 +1,68 @@
-﻿using Core.Auth.Database.ORM;
+﻿using Core.Auth.Database.DB.Accounts;
+using Core.Auth.Database.ORM;
 using Core.Auth.Models.Tenant;
 using Core.Shared.Models;
+using Core.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
+using log4net;
 
 namespace Core.Auth.Services
 {
     internal static class TenantService
     {
-        internal static ResultOf<CreateOrUpdateTenant_Response> CreateOrUpdateTenant(CORE_DB_Connection connection, CreateOrUpdateTenant_Request parameter)
+        static readonly ILog logger = LogManager.GetLogger(typeof(TenantService));
+
+        internal static ResultOf<RegisterTenant_Response> RegisterTenant(CORE_DB_Connection connection, RegisterTenant_Request parameter)
         {
+            ResultOf<RegisterTenant_Response> returnValue;
+
             try
             {
-                auth_tenant.Model? dbTenant;
-
-                if (parameter.ID > 0)
+                var tenant = new auth_tenant.Model
                 {
-                    dbTenant = auth_tenant.DB.Search(connection, new auth_tenant.Query { auth_tenant_id = parameter.ID }).FirstOrDefault();
+                    tenant_name = parameter.TenantName,
 
-                    if (dbTenant == null)
-                    {
-                        return new ResultOf<CreateOrUpdateTenant_Response>(CORE_OperationStatus.FAILED, $"Tenant was not found for specified id {parameter.ID}");
-                    }
-                }
-                else
+                    created_at = DateTime.Now,
+                    modified_at = DateTime.Now
+                };
+
+                auth_tenant.DB.Save(connection, tenant);
+
+                var account = new auth_account.ORM
                 {
-                    dbTenant = new auth_tenant.Model();
-                }
+                    email = parameter.Email,
+                    username = parameter.Email,
+                    password_hash = PasswordHasher.Hash(parameter.Password),
+                    tenant_id = tenant.auth_tenant_id,
+                    is_main_account_for_tenant = true,
 
-                dbTenant.tenant_name = parameter.Name;
+                    created_at = DateTime.Now,
+                    modified_at = DateTime.Now
+                };
 
-                auth_tenant.DB.Save(connection, dbTenant);
+                auth_account.Database.Save(connection, account);
 
-                return new ResultOf<CreateOrUpdateTenant_Response>(new CreateOrUpdateTenant_Response
+                // generate confirmation email with token and define expiration (24h)
+
+                // TODO send email confirmation - request user to confirm his email address
+
+                // TODO remove
+                var dbAcc = Get_Accounts_for_ID.Invoke(connection.Connection, connection.Transaction, new P_GAfID { AccountID = 1 });
+
+                returnValue = new ResultOf<RegisterTenant_Response>(new RegisterTenant_Response
                 {
-                    ID = dbTenant.auth_tenant_id,
-                    Name = dbTenant.tenant_name
+                    TenantID = tenant.auth_tenant_id,
+                    User_AccountID = account.auth_account_id
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                logger.Error("Failed to register tenant: ", ex);
+
+                returnValue = new ResultOf<RegisterTenant_Response>(ex);
             }
+
+            return returnValue;
         }
     }
 }

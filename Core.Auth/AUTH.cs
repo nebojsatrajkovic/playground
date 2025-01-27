@@ -31,9 +31,9 @@ namespace Core.Auth
     {
         public static class Tenant
         {
-            public static ResultOf<CreateOrUpdateTenant_Response> CreateOrUpdateTenant(CORE_DB_Connection connection, CreateOrUpdateTenant_Request parameter) => TenantService.CreateOrUpdateTenant(connection, parameter);
+            public static ResultOf<RegisterTenant_Response> CreateOrUpdateTenant(CORE_DB_Connection connection, RegisterTenant_Request parameter) => TenantService.RegisterTenant(connection, parameter);
 
-            public static ResultOf<CreateOrUpdateTenant_Response> CreateOrUpdateTenant(CreateOrUpdateTenant_Request parameter)
+            public static ResultOf<RegisterTenant_Response> CreateOrUpdateTenant(RegisterTenant_Request parameter)
             {
                 if (string.IsNullOrEmpty(ConnectionString))
                 {
@@ -42,7 +42,7 @@ namespace Core.Auth
 
                 return DB_Action.ExecuteCommitAction(ConnectionString, dbConnection =>
                 {
-                    return TenantService.CreateOrUpdateTenant(dbConnection, parameter);
+                    return TenantService.RegisterTenant(dbConnection, parameter);
                 });
             }
         }

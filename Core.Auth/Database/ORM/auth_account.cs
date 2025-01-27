@@ -18,12 +18,14 @@ public static class auth_account
         public int auth_account_id { get; set; }
         public string email { get; set; } = null!;
         public string username { get; set; } = null!;
-        public string password { get; set; } = null!;
+        public string password_hash { get; set; } = null!;
         public bool is_deleted { get; set; }
         public DateTime created_at { get; set; }
         public DateTime modified_at { get; set; }
         public int? tenant_id { get; set; }
         public bool is_verified { get; set; }
+        public bool is_disabled { get; set; }
+        public bool is_main_account_for_tenant { get; set; }
     }
 
     public class QueryParameter
@@ -31,11 +33,13 @@ public static class auth_account
         public int? auth_account_id { get; set; } = null;
         public string? email { get; set; } = null;
         public string? username { get; set; } = null;
-        public string? password { get; set; } = null;
+        public string? password_hash { get; set; } = null;
         public bool? is_deleted { get; set; } = null;
         public DateTime? created_at { get; set; } = null;
         public DateTime? modified_at { get; set; } = null;
         public int? tenant_id { get; set; } = null;
         public bool? is_verified { get; set; } = null;
+        public bool? is_disabled { get; set; } = null;
+        public bool? is_main_account_for_tenant { get; set; } = null;
     }
 }
