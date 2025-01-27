@@ -18,7 +18,7 @@ namespace Core.Auth.Services
 
             try
             {
-                var tenant = new auth_tenant.Model
+                var tenant = new auth_tenant.ORM
                 {
                     tenant_name = parameter.TenantName,
 
@@ -26,7 +26,7 @@ namespace Core.Auth.Services
                     modified_at = DateTime.Now
                 };
 
-                auth_tenant.DB.Save(connection, tenant);
+                auth_tenant.Database.Save(connection, tenant);
 
                 var account = new auth_account.ORM
                 {

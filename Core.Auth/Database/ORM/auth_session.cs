@@ -5,14 +5,14 @@ namespace Core.Auth.Database.ORM;
 
 public static class auth_session
 {
-    public static DBTable<Model, Query> DB { get; }
+    public static DBTable<ORM, QueryParameter> Database { get; }
 
     static auth_session()
     {
-        DB = new DBTable<Model, Query>();
+        Database = new DBTable<ORM, QueryParameter>();
     }
 
-    public class Model
+    public class ORM
     {
         [CORE_DB_SQL_PrimaryKey]
         public int auth_session_id { get; set; }
@@ -24,9 +24,10 @@ public static class auth_session
         public DateTime created_at { get; set; }
         public DateTime modified_at { get; set; }
         public int? tenant_id { get; set; }
+
     }
 
-    public class Query
+    public class QueryParameter
     {
         public int? auth_session_id { get; set; } = null;
         public int? account_refid { get; set; } = null;
@@ -37,5 +38,6 @@ public static class auth_session
         public DateTime? created_at { get; set; } = null;
         public DateTime? modified_at { get; set; } = null;
         public int? tenant_id { get; set; } = null;
+
     }
 }

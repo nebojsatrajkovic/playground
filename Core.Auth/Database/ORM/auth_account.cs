@@ -26,6 +26,7 @@ public static class auth_account
         public bool is_verified { get; set; }
         public bool is_disabled { get; set; }
         public bool is_main_account_for_tenant { get; set; }
+
     }
 
     public class QueryParameter
@@ -41,5 +42,6 @@ public static class auth_account
         public bool? is_verified { get; set; } = null;
         public bool? is_disabled { get; set; } = null;
         public bool? is_main_account_for_tenant { get; set; } = null;
+
     }
 }
