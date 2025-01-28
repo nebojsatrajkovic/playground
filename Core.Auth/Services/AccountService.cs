@@ -202,7 +202,7 @@ namespace Core.Auth.Services
 
                 var confirmationLink = "http://localhost:21000/api/registration/confirm-registration?token=" + registration_confirmation.token;
 
-                var sendRegistrationEmail = EmailService.SendEmail([email], "Confirm registration with CORE", @"
+                returnValue = EmailService.SendEmail([email], "Confirm registration with CORE", @"
                     <html>
                     <head>
                     </head>
@@ -212,8 +212,6 @@ namespace Core.Auth.Services
                     </body>
                     </html>
                 ");
-
-                returnValue = new ResultOf(CORE_OperationStatus.SUCCESS);
             }
             catch (Exception ex)
             {
