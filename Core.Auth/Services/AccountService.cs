@@ -1,4 +1,5 @@
-﻿using Core.Auth.Database.ORM;
+﻿using Core.Auth.Database.DB.Accounts;
+using Core.Auth.Database.ORM;
 using Core.Auth.Models.Account;
 using Core.Shared.Models;
 using Core.Shared.Services;
@@ -114,15 +115,23 @@ namespace Core.Auth.Services
 
             try
             {
-                var account = auth_account.Database.Search(connection, new auth_account.QueryParameter
+                var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
                 {
-                    email = parameter.Email
-                }).FirstOrDefault();
+                    email = parameter.Email,
+                    tenant_id = parameter.TenantID > 0 ? parameter.TenantID : null
+                });
 
-                if (account == null)
+                if (accounts == null || accounts.Count == 0)
                 {
                     return new ResultOf(CORE_OperationStatus.FAILED, "Failed to find an account with the provided email");
                 }
+
+                if (accounts.Count > 1)
+                {
+                    return new ResultOf(CORE_OperationStatus.FAILED, "You must specify for which tenant you want to resend confirmation email");
+                }
+
+                var account = accounts[0];
 
                 if (account.is_verified)
                 {
@@ -143,6 +152,32 @@ namespace Core.Auth.Services
                 logger.Error("Failed to resend account registration confirmation email: ", ex);
 
                 returnValue = new ResultOf(ex);
+            }
+
+            return returnValue;
+        }
+
+        internal static ResultOf<List<TenantForAccount>> GetAccountTenants(CORE_DB_Connection connection, GetTenantsForAccount_Request parameter)
+        {
+            ResultOf<List<TenantForAccount>> returnValue;
+
+            try
+            {
+                var tenantsForAccount = Get_Tenants_for_AccountEmail.Invoke(connection.Connection, connection.Transaction, new P_GTfAE { Email = parameter.Email });
+
+                var result = tenantsForAccount?.Select(x => new TenantForAccount
+                {
+                    TenantID = x.auth_tenant_id,
+                    TenantName = x.tenant_name
+                }).ToList() ?? [];
+
+                returnValue = new ResultOf<List<TenantForAccount>>(result);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to get tenants for account: ", ex);
+
+                returnValue = new ResultOf<List<TenantForAccount>>(ex);
             }
 
             return returnValue;

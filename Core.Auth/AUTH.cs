@@ -72,6 +72,8 @@ namespace Core.Auth
             public static ResultOf<ConfirmRegistration_Response> ConfirmRegistration(CORE_DB_Connection connection, ConfirmRegistration_Request parameter) => AccountService.ConfirmRegistration(connection, parameter);
 
             public static ResultOf ResendRegistrationConfirmationEmail(CORE_DB_Connection connection, ResendRegistrationConfirmationEmail_Request parameter) => AccountService.ResendRegistrationConfirmationEmail(connection, parameter);
+
+            public static ResultOf<List<TenantForAccount>> GetAccountTenants(CORE_DB_Connection connection, GetTenantsForAccount_Request parameter) => AccountService.GetAccountTenants(connection, parameter);
         }
     }
 }

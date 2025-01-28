@@ -1,4 +1,5 @@
-﻿using Core.Auth.Database.ORM;
+﻿using Core.Auth.Database.DB.Tenants;
+using Core.Auth.Database.ORM;
 using Core.Auth.Models.Tenant;
 using Core.Shared.Models;
 using Core.Shared.Utils;
@@ -17,8 +18,12 @@ namespace Core.Auth.Services
 
             try
             {
-                // TODO check existing tenant name
-                // TODO check existing email => or allow it? to have multiple companies -> or ask to confirm?
+                var tenantsForName = Get_Tenants_for_Name.Invoke(connection.Connection, connection.Transaction, new P_GTfN { Name = parameter.TenantName });
+
+                if (tenantsForName != null && tenantsForName.Count > 0)
+                {
+                    return new ResultOf<RegisterTenant_Response>(CORE_OperationStatus.FAILED, "Requested tenant name already exists, it must be unique.");
+                }
 
                 var tenant = new auth_tenant.ORM
                 {

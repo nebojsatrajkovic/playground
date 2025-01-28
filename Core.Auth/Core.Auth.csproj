@@ -8,11 +8,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Database\DB\Accounts\SQL\Get_Accounts_for_ID.sql" />
+	  <None Remove="Database\DB\Accounts\SQL\Get_Tenants_for_AccountEmail.sql" />
+	  <None Remove="Database\DB\Tenants\SQL\Get_Tenants_for_Name.sql" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Accounts_for_ID.sql" />
+	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Tenants_for_AccountEmail.sql" />
+	  <EmbeddedResource Include="Database\DB\Tenants\SQL\Get_Tenants_for_Name.sql" />
 	</ItemGroup>
 
 	<ItemGroup>

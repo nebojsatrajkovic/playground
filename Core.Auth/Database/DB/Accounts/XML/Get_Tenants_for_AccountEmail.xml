@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+
+	<Meta Method_Namespace="Core.Auth.Database.DB.Accounts" Method_ClassName="Get_Tenants_for_AccountEmail" />
+
+	<SQL>
+		SELECT
+		auth_tenant.auth_tenant_id,
+		auth_tenant.tenant_name
+		FROM auth_account
+		INNER JOIN auth_tenant ON auth_tenant.auth_tenant_id = auth_account.tenant_id And
+		auth_tenant.is_deleted = 0
+		WHERE auth_account.email = @Email
+	</SQL>
+
+	<Parameter ClassName="P_GTfAE">
+		<ClassMember Name="Email" Type="string" />
+	</Parameter>
+
+	<Result>
+
+		<ResultClass Name="GTfAE" IsCollection="true" GroupBy="auth_tenant_id">
+			<ClassMember Name="auth_tenant_id" Type="int" />
+			<ClassMember Name="tenant_name" Type="string" />
+		</ResultClass>
+
+	</Result>
+
+</Template>

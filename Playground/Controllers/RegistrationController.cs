@@ -10,12 +10,21 @@ namespace Playground.Controllers
     [ApiController]
     public class RegistrationController(ILogger<RegistrationController> logger) : AbstractController(logger)
     {
-        [HttpGet("register-tenant")]
+        [HttpPost("register-tenant")]
         public ResultOf<RegisterTenant_Response> RegisterTenant(RegisterTenant_Request parameter)
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
                 return AUTH.Tenant.CreateOrUpdateTenant(DB_Connection, parameter);
+            });
+        }
+
+        [HttpPost("resend-registration-confirmation-email")]
+        public ResultOf ResendRegistrationConfirmationEmail(ResendRegistrationConfirmationEmail_Request parameter)
+        {
+            return ExecuteUnauthenticatedCommitAction(() =>
+            {
+                return AUTH.Account.ResendRegistrationConfirmationEmail(DB_Connection, parameter);
             });
         }
 
@@ -28,12 +37,12 @@ namespace Playground.Controllers
             });
         }
 
-        [HttpPost("resend-registration-confirmation-email")]
-        public ResultOf ResendRegistrationConfirmationEmail(ResendRegistrationConfirmationEmail_Request parameter)
+        [HttpPost("get-tenants-for-account-email")]
+        public ResultOf<List<TenantForAccount>> GetAccountTenants(GetTenantsForAccount_Request parameter)
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Account.ResendRegistrationConfirmationEmail(DB_Connection, parameter);
+                return AUTH.Account.GetAccountTenants(DB_Connection, parameter);
             });
         }
     }

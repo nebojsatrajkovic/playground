@@ -1,8 +1,7 @@
 ﻿namespace Core.Auth.Models.Account
 {
-    public class ResendRegistrationConfirmationEmail_Request
+    public class GetTenantsForAccount_Request
     {
         public string Email { get; set; } = null!;
-        public int? TenantID { get; set; }
     }
 }

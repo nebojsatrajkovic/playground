@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+
+	<Meta Method_Namespace="Core.Auth.Database.DB.Tenants" Method_ClassName="Get_Tenants_for_Name" />
+
+	<SQL>
+		SELECT
+		auth_tenant.auth_tenant_id,
+		auth_tenant.tenant_name
+		FROM auth_tenant
+		WHERE auth_tenant.is_deleted = 0 And
+		Lower(auth_tenant.tenant_name) like Concat('%', Lower(@Name), '%')
+	</SQL>
+
+	<Parameter ClassName="P_GTfN">
+		<ClassMember Name="Name" Type="string" />
+	</Parameter>
+
+	<Result>
+
+		<ResultClass Name="GTfN" IsCollection="true" GroupBy="auth_tenant_id">
+			<ClassMember Name="auth_tenant_id" Type="int" />
+			<ClassMember Name="tenant_name" Type="string" />
+		</ResultClass>
+
+	</Result>
+
+</Template>
