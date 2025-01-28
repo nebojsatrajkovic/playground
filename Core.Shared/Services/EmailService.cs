@@ -9,17 +9,17 @@ namespace Core.Shared.Services
     {
         static readonly ILog logger = LogManager.GetLogger(typeof(EmailService));
 
-        public static ResultOf SendEmail(string emailFrom, List<string> emailTo, string subject, string body)
+        public static ResultOf SendEmail(List<string> emailTo, string subject, string body)
         {
             ResultOf returnValue;
 
             try
             {
-                string emailPassword = "your-email-password"; // Be cautious storing passwords in code
+                string? emailPassword = Environment.GetEnvironmentVariable("EMAIL_SERVICE_PASS");
 
                 using var mail = new MailMessage
                 {
-                    From = new MailAddress(emailFrom),
+                    From = new MailAddress("alexios.dyme@gmail.com"),
                     Subject = subject,
                     Body = body,
                     IsBodyHtml = true
@@ -32,7 +32,7 @@ namespace Core.Shared.Services
 
                 using var smtp = new SmtpClient("smtp.gmail.com", 587)
                 {
-                    Credentials = new NetworkCredential(emailFrom, emailPassword),
+                    Credentials = new NetworkCredential("alexios.dyme@gmail.com", emailPassword),
                     EnableSsl = true
                 };
 

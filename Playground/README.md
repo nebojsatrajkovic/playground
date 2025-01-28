@@ -43,3 +43,9 @@ This example project (Playground) will contain already generated code that serve
 - After that user can just click on the command and plugin will handle the rest. At anytime user can execute the same command and it will generate the code again with the latest changes from the database.
 - The plugin will load the current state of the database and generate code accordingly.
 - *NOTE:* VS plugin will first delete the folder specified in the configuration file, create it again, and then place files within.
+
+
+#KNOWN ISSUES
+- User account can be bound to multiple companies (same email for example)
+- To resolve this introduce tenant selection for re-sending email confirmation
+- Extend re-send confirmation email request with tenant id

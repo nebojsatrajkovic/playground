@@ -83,17 +83,17 @@ namespace Core.Shared.Models
             Message = message ?? ex.Message;
         }
 
-        public ResultOf(AResultOf resultOf)
+        public ResultOf(AResultOf resultOf, string? message = "")
         {
             Status = resultOf.Status;
-            Message = resultOf.Message;
+            Message = string.IsNullOrEmpty(message) ? resultOf.Message : message;
             NestedResult = resultOf;
         }
 
-        public ResultOf(AResultOf<T> resultOf)
+        public ResultOf(AResultOf<T> resultOf, string? message = "")
         {
             Status = resultOf.Status;
-            Message = resultOf.Message;
+            Message = string.IsNullOrEmpty(message) ? resultOf.Message : message;
             NestedResult = resultOf;
         }
 
@@ -136,10 +136,10 @@ namespace Core.Shared.Models
             Message = message ?? ex.Message;
         }
 
-        public ResultOf(AResultOf resultOf)
+        public ResultOf(AResultOf resultOf, string? message = "")
         {
             Status = resultOf.Status;
-            Message = resultOf.Message;
+            Message = string.IsNullOrEmpty(message) ? resultOf.Message : message;
             NestedResult = resultOf;
         }
     }

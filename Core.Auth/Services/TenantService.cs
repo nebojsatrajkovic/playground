@@ -1,7 +1,6 @@
 ﻿using Core.Auth.Database.ORM;
 using Core.Auth.Models.Tenant;
 using Core.Shared.Models;
-using Core.Shared.Services;
 using Core.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
@@ -18,6 +17,9 @@ namespace Core.Auth.Services
 
             try
             {
+                // TODO check existing tenant name
+                // TODO check existing email => or allow it? to have multiple companies -> or ask to confirm?
+
                 var tenant = new auth_tenant.ORM
                 {
                     tenant_name = parameter.TenantName,
@@ -42,16 +44,12 @@ namespace Core.Auth.Services
 
                 auth_account.Database.Save(connection, account);
 
-                var sendRegistrationEmail = EmailService.SendEmail("", [parameter.Email], "", "");
+                var sendRegistrationEmail = AccountService.SendAccountRegistrationConfirmationEmail(connection, account.auth_account_id, account.email);
 
                 if (!sendRegistrationEmail.Succeeded)
                 {
                     return new ResultOf<RegisterTenant_Response>(sendRegistrationEmail);
                 }
-
-                // generate confirmation email with token and define expiration (24h)
-
-                // TODO send email confirmation - request user to confirm his email address
 
                 returnValue = new ResultOf<RegisterTenant_Response>(new RegisterTenant_Response
                 {

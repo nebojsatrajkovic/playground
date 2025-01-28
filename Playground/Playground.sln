@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.DB.Plugin.MySQL", "..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.DB.Plugin.Shared", "..\..\Core.DB.Plugin\Core.DB.Plugin.Shared\Core.DB.Plugin.Shared.csproj", "{A7B82B0B-ED21-4F17-925F-BA82580ECE40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Cloud", "..\Core.Cloud\Core.Cloud.csproj", "{FE6B68FC-6CAB-4DD7-818C-003182605F9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Cloud", "..\Core.Cloud\Core.Cloud.csproj", "{FE6B68FC-6CAB-4DD7-818C-003182605F9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

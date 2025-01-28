@@ -1,4 +1,5 @@
-﻿using Core.Auth.Models.Tenant;
+﻿using Core.Auth.Models.Account;
+using Core.Auth.Models.Tenant;
 using Core.Auth.Services;
 using Core.DB.Plugin.MySQL;
 using Core.Shared.Models;
@@ -66,6 +67,11 @@ namespace Core.Auth
                     return AccountService.CreateOrUpdateAccount(dbConnection);
                 });
             }
+
+
+            public static ResultOf<ConfirmRegistration_Response> ConfirmRegistration(CORE_DB_Connection connection, ConfirmRegistration_Request parameter) => AccountService.ConfirmRegistration(connection, parameter);
+
+            public static ResultOf ResendRegistrationConfirmationEmail(CORE_DB_Connection connection, ResendRegistrationConfirmationEmail_Request parameter) => AccountService.ResendRegistrationConfirmationEmail(connection, parameter);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Playground.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AbstractController : MySQL_AbstractController
+    public class AbstractController : MySQL_ResultOf_AbstractController
     {
         protected AbstractController(ILogger logger) : base(logger, CORE_Configuration.Database.ConnectionString)
         {
