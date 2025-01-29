@@ -29,9 +29,10 @@ namespace Core.Shared.Services
                 {
                     mail.To.Add(email);
                 }
-                
+
                 using var smtp = new SmtpClient("smtp.gmail.com", 587)
                 {
+                    UseDefaultCredentials = false,
                     Credentials = new NetworkCredential("alexios.dyme@gmail.com", emailPassword),
                     EnableSsl = true
                 };
