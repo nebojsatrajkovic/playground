@@ -16,14 +16,14 @@ public static class auth_session
     {
         [CORE_DB_SQL_PrimaryKey]
         public int auth_session_id { get; set; }
-        public int? account_refid { get; set; }
+        public int account_refid { get; set; }
         public string session_token { get; set; } = null!;
         public DateTime valid_from { get; set; }
         public DateTime valid_to { get; set; }
         public bool is_deleted { get; set; }
         public DateTime created_at { get; set; }
         public DateTime modified_at { get; set; }
-        public int? tenant_id { get; set; }
+        public int tenant_id { get; set; }
 
     }
 

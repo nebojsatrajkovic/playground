@@ -3,8 +3,10 @@ using Core.Auth.Database.ORM;
 using Core.Auth.Models.Account;
 using Core.Shared.Models;
 using Core.Shared.Services;
+using Core.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
+using Microsoft.AspNetCore.Http;
 
 namespace Core.Auth.Services
 {
@@ -75,7 +77,7 @@ namespace Core.Auth.Services
 
                     auth_registration_confirmation.Database.Save(connection, confirmationRequest);
 
-                    var sendRegistrationEmail = SendAccountRegistrationConfirmationEmail(connection, account.auth_account_id, account.email);
+                    var sendRegistrationEmail = SendAccountRegistrationConfirmationEmail(connection, account.auth_account_id, account.tenant_id, account.email);
 
                     if (!sendRegistrationEmail.Succeeded)
                     {
@@ -138,7 +140,7 @@ namespace Core.Auth.Services
                     return new ResultOf(CORE_OperationStatus.FAILED, "Account has been already verified");
                 }
 
-                var sendRegistrationEmail = SendAccountRegistrationConfirmationEmail(connection, account.auth_account_id, account.email);
+                var sendRegistrationEmail = SendAccountRegistrationConfirmationEmail(connection, account.auth_account_id, account.tenant_id, account.email);
 
                 if (!sendRegistrationEmail.Succeeded)
                 {
@@ -183,7 +185,7 @@ namespace Core.Auth.Services
             return returnValue;
         }
 
-        internal static ResultOf SendAccountRegistrationConfirmationEmail(CORE_DB_Connection connection, int accountId, string email)
+        internal static ResultOf SendAccountRegistrationConfirmationEmail(CORE_DB_Connection connection, int accountId, int tenantId, string email)
         {
             ResultOf returnValue;
 
@@ -195,7 +197,8 @@ namespace Core.Auth.Services
                     expires_at = DateTime.Now.AddHours(24),
                     token = Guid.NewGuid().ToString(),
                     created_at = DateTime.Now,
-                    modified_at = DateTime.Now
+                    modified_at = DateTime.Now,
+                    tenant_id = tenantId
                 };
 
                 auth_registration_confirmation.Database.Save(connection, registration_confirmation);
@@ -218,6 +221,122 @@ namespace Core.Auth.Services
                 logger.Error("Failed to send account registration confirmation email: ", ex);
 
                 returnValue = new ResultOf(ex);
+            }
+
+            return returnValue;
+        }
+
+        internal static ResultOf<LogIn_Response> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter)
+        {
+            ResultOf<LogIn_Response> returnValue;
+
+            try
+            {
+                var result = new LogIn_Response();
+
+                var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
+                {
+                    email = parameter.Email,
+                    is_deleted = false,
+                    tenant_id = parameter.TenantID > 0 ? parameter.TenantID : null
+                });
+
+                if (accounts == null || accounts.Count == 0)
+                {
+                    result.IfError_InvalidCredentials = true;
+
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                }
+
+                if (accounts.Count > 1)
+                {
+                    result.IfError_MustSpecifyTenant = true;
+
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                }
+
+                var account = accounts[0];
+
+                if (!account.is_verified)
+                {
+                    result.IfError_AccountIsNotVerified = true;
+
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                }
+
+                if (!PasswordHasher.Verify(parameter.Password, account.password_hash))
+                {
+                    result.IfError_InvalidCredentials = true;
+
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                }
+
+                auth_session.Database.SoftDelete(connection, new auth_session.QueryParameter
+                {
+                    account_refid = account.auth_account_id
+                });
+
+                var session = new auth_session.ORM
+                {
+                    account_refid = account.auth_account_id,
+                    created_at = DateTime.Now,
+                    modified_at = DateTime.Now,
+                    valid_from = DateTime.UtcNow,
+                    valid_to = DateTime.UtcNow.AddHours(8),
+                    session_token = SessionGenerator.GenerateSessionToken(),
+                    tenant_id = account.tenant_id
+                };
+
+                auth_session.Database.Save(connection, session);
+
+                SessionGenerator.UpdateCookie(context, session.session_token);
+
+                result.IsSuccess = true;
+
+                returnValue = new ResultOf<LogIn_Response>(result);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to log in: ", ex);
+
+                returnValue = new ResultOf<LogIn_Response>(ex);
+            }
+
+            return returnValue;
+        }
+
+        internal static ResultOf<ValidateSession_Response> ValidateSession(CORE_DB_Connection connection, ValidateSession_Request parameter)
+        {
+            ResultOf<ValidateSession_Response> returnValue;
+
+            try
+            {
+                var session = auth_session.Database.Search(connection, new auth_session.QueryParameter
+                {
+                    session_token = parameter.SessionToken
+                }).FirstOrDefault();
+
+                if (session == null || session.valid_to < DateTime.UtcNow)
+                {
+                    if (session != null)
+                    {
+                        auth_session.Database.SoftDelete(connection, session);
+                    }
+
+                    return new ResultOf<ValidateSession_Response>(CORE_OperationStatus.FAILED);
+                }
+
+                returnValue = new ResultOf<ValidateSession_Response>(new ValidateSession_Response
+                {
+                    AccountID = session.account_refid,
+                    TenantID = session.tenant_id
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to validate session: ", ex);
+
+                returnValue = new ResultOf<ValidateSession_Response>(ex);
             }
 
             return returnValue;

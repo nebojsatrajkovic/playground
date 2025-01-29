@@ -4,6 +4,7 @@ using Core.Auth.Services;
 using Core.DB.Plugin.MySQL;
 using Core.Shared.Models;
 using CoreCore.DB.Plugin.Shared.Database;
+using Microsoft.AspNetCore.Http;
 
 namespace Core.Auth
 {
@@ -74,6 +75,10 @@ namespace Core.Auth
             public static ResultOf ResendRegistrationConfirmationEmail(CORE_DB_Connection connection, ResendRegistrationConfirmationEmail_Request parameter) => AccountService.ResendRegistrationConfirmationEmail(connection, parameter);
 
             public static ResultOf<List<TenantForAccount>> GetAccountTenants(CORE_DB_Connection connection, GetTenantsForAccount_Request parameter) => AccountService.GetAccountTenants(connection, parameter);
+
+            public static ResultOf<LogIn_Response> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter) => AccountService.LogIn(context, connection, parameter);
+
+            public static ResultOf<ValidateSession_Response> ValidateSession(CORE_DB_Connection connection, ValidateSession_Request parameter) => AccountService.ValidateSession(connection, parameter);
         }
     }
 }

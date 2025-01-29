@@ -18,6 +18,11 @@ namespace Core.Shared.Services
                 string? emailFrom = Environment.GetEnvironmentVariable("CORE_EMAIL_ADDRESS");
                 string? emailPassword = Environment.GetEnvironmentVariable("CORE_EMAIL_PASS");
 
+                if (string.IsNullOrEmpty(emailFrom) || string.IsNullOrEmpty(emailPassword))
+                {
+                    return new ResultOf(CORE_OperationStatus.FAILED, "Email service credentials are not configured");
+                }
+
                 using var mail = new MailMessage
                 {
                     From = new MailAddress(emailFrom),

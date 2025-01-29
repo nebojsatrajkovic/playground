@@ -1,4 +1,6 @@
-﻿using Core.DB.Plugin.MySQL.Controllers;
+﻿using Core.Auth;
+using Core.Auth.Models.Account;
+using Core.DB.Plugin.MySQL.Controllers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling.Exceptions;
 using CoreCore.DB.Plugin.Shared.Database;
@@ -17,13 +19,15 @@ namespace Playground.Controllers
 
         protected override void Authenticate(CORE_DB_Connection dbConnection)
         {
-            bool isAuthenticated = true;
+            bool isAuthenticated = false;
 
             var sessionToken = GetSessionToken();
 
             if (!string.IsNullOrEmpty(sessionToken))
             {
-                // TODO validate session
+                var validationResult = AUTH.Account.ValidateSession(dbConnection, new ValidateSession_Request { SessionToken = sessionToken });
+
+                isAuthenticated = validationResult.Succeeded;
             }
 
             if (!isAuthenticated)

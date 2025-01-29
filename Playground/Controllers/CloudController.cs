@@ -22,6 +22,8 @@ namespace Playground.Controllers
 
             if (metadata == null) return NotFound("File not found.");
 
+            await Task.Delay(1);
+
             var stream = new FileStream(metadata.FilePath, FileMode.Open, FileAccess.Read);
 
             return File(stream, "application/octet-stream", metadata.FileName);

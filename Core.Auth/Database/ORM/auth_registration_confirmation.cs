@@ -19,11 +19,12 @@ public static class auth_registration_confirmation
         public int account_refid { get; set; }
         public string? token { get; set; }
         public DateTime? expires_at { get; set; }
-        public bool? is_processed { get; set; }
-        public bool? is_confirmed { get; set; }
-        public DateTime? created_at { get; set; }
-        public DateTime? modified_at { get; set; }
-        public bool? is_deleted { get; set; }
+        public bool is_processed { get; set; }
+        public bool is_confirmed { get; set; }
+        public DateTime created_at { get; set; }
+        public DateTime modified_at { get; set; }
+        public bool is_deleted { get; set; }
+        public int tenant_id { get; set; }
 
     }
 
@@ -38,6 +39,7 @@ public static class auth_registration_confirmation
         public DateTime? created_at { get; set; } = null;
         public DateTime? modified_at { get; set; } = null;
         public bool? is_deleted { get; set; } = null;
+        public int? tenant_id { get; set; } = null;
 
     }
 }

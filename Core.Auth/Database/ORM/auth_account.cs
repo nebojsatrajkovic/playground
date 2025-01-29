@@ -22,7 +22,7 @@ public static class auth_account
         public bool is_deleted { get; set; }
         public DateTime created_at { get; set; }
         public DateTime modified_at { get; set; }
-        public int? tenant_id { get; set; }
+        public int tenant_id { get; set; }
         public bool is_verified { get; set; }
         public bool is_disabled { get; set; }
         public bool is_main_account_for_tenant { get; set; }
