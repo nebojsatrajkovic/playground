@@ -15,11 +15,12 @@ namespace Core.Shared.Services
 
             try
             {
-                string? emailPassword = Environment.GetEnvironmentVariable("EMAIL_SERVICE_PASS");
+                string? emailFrom = Environment.GetEnvironmentVariable("CORE_EMAIL_ADDRESS");
+                string? emailPassword = Environment.GetEnvironmentVariable("CORE_EMAIL_PASS");
 
                 using var mail = new MailMessage
                 {
-                    From = new MailAddress("alexios.dyme@gmail.com"),
+                    From = new MailAddress(emailFrom),
                     Subject = subject,
                     Body = body,
                     IsBodyHtml = true
@@ -33,7 +34,7 @@ namespace Core.Shared.Services
                 using var smtp = new SmtpClient("smtp.gmail.com", 587)
                 {
                     UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential("alexios.dyme@gmail.com", emailPassword),
+                    Credentials = new NetworkCredential(emailFrom, emailPassword),
                     EnableSsl = true
                 };
 
