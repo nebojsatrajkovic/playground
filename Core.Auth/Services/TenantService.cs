@@ -49,7 +49,7 @@ namespace Core.Auth.Services
 
                 auth_account.Database.Save(connection, account);
 
-                var sendRegistrationEmail = AccountService.SendAccountRegistrationConfirmationEmail(connection, account.auth_account_id, account.tenant_id, account.email);
+                var sendRegistrationEmail = AccountService.SendVerificationEmail(connection, Enumeration.EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_id, account.email);
 
                 if (!sendRegistrationEmail.Succeeded)
                 {

@@ -78,7 +78,13 @@ namespace Core.Auth
 
             public static ResultOf<LogIn_Response> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter) => AccountService.LogIn(context, connection, parameter);
 
-            public static ResultOf<ValidateSession_Response> ValidateSession(CORE_DB_Connection connection, ValidateSession_Request parameter) => AccountService.ValidateSession(connection, parameter);
+            public static ResultOf LogOut(HttpContext context, CORE_DB_Connection connection) => AccountService.LogOut(context, connection);
+
+            public static ResultOf<ValidateSession_Response> ValidateSession(HttpContext context, CORE_DB_Connection connection, ValidateSession_Request parameter) => AccountService.ValidateSession(context, connection, parameter);
+
+            public static ResultOf<TriggerForgotPassword_Response> TriggerForgotPassword(HttpContext context, CORE_DB_Connection connection, TriggerForgotPassword_Request parameter) => AccountService.TriggerForgotPassword(context, connection, parameter);
+
+            public static ResultOf<ResetPassword_Response> ResetPassword(CORE_DB_Connection connection, ResetPassword_Request parameter) => AccountService.ResetPassword(connection, parameter);
         }
     }
 }

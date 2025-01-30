@@ -25,7 +25,7 @@ namespace Playground.Controllers
 
             if (!string.IsNullOrEmpty(sessionToken))
             {
-                var validationResult = AUTH.Account.ValidateSession(dbConnection, new ValidateSession_Request { SessionToken = sessionToken });
+                var validationResult = AUTH.Account.ValidateSession(HttpContext, dbConnection, new ValidateSession_Request { SessionToken = sessionToken });
 
                 isAuthenticated = validationResult.Succeeded;
             }
