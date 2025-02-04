@@ -287,8 +287,6 @@ namespace Core.Auth.Services
 
             try
             {
-                var result = new LogIn_Response();
-
                 var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
                 {
                     email = parameter.Email,
@@ -298,32 +296,24 @@ namespace Core.Auth.Services
 
                 if (accounts == null || accounts.Count == 0)
                 {
-                    result.IfError_InvalidCredentials = true;
-
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_InvalidCredentials = true });
                 }
 
                 if (accounts.Count > 1)
                 {
-                    result.IfError_MustSpecifyTenant = true;
-
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_MustSpecifyTenant = true });
                 }
 
                 var account = accounts[0];
 
                 if (!account.is_verified)
                 {
-                    result.IfError_AccountIsNotVerified = true;
-
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_AccountIsNotVerified = true });
                 }
 
                 if (!PasswordHasher.Verify(parameter.Password, account.password_hash))
                 {
-                    result.IfError_InvalidCredentials = true;
-
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, result);
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_InvalidCredentials = true });
                 }
 
                 auth_session.Database.SoftDelete(connection, new auth_session.QueryParameter
@@ -348,9 +338,7 @@ namespace Core.Auth.Services
 
                 sessionsCache.Set(session.session_token, session, new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromHours(1) });
 
-                result.IsSuccess = true;
-
-                returnValue = new ResultOf<LogIn_Response>(result);
+                returnValue = new ResultOf<LogIn_Response>(new LogIn_Response { IsSuccess = true });
             }
             catch (Exception ex)
             {
