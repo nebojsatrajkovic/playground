@@ -17,16 +17,14 @@ namespace Core.Auth
             ConnectionString = connectionString;
         }
 
+        // TODO method to create or update an account - watch out for the master account
+        // TODO create account -> decide whether to automatically approve it or he needs to confirm his email address
+        // TODO method to delete an account
+        // TODO method to deactivate an account
+        // TODO method to update tenant data
 
-        // TODO
-        // method for registration of a tenant with it's default account (tenants are actually companies)
-        // method to create or update an account - watch out for the master account
-        // create account -> decide whether to automatically approve it or he needs to confirm his email address
-        // method to delete an account
-        // method to deactivate an account
-        // method to update tenant data
-        // method to login
-        // method to logout
+        // TODO implement password validity check - to satisfy security criterias
+        // TODO implement a way to terminate user's session and update the cache (when it's done via database)
     }
 
     public static partial class AUTH

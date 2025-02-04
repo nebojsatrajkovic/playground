@@ -14,9 +14,6 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Core.Auth.Services
 {
-    // TODO implement password validity check - to satisfy security criterias
-    // TODO implement a way to terminate user's session and update the cache (when it's done via database)
-
     internal static class AccountService
     {
         static readonly MemoryCache sessionsCache;
