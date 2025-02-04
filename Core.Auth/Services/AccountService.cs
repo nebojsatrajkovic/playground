@@ -2,22 +2,32 @@
 using Core.Auth.Database.ORM;
 using Core.Auth.Enumeration;
 using Core.Auth.Models.Account;
+using Core.DB.Plugin.MySQL;
+using Core.Shared.Configuration;
 using Core.Shared.Models;
 using Core.Shared.Services;
 using Core.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Core.Auth.Services
 {
     // TODO implement password validity check - to satisfy security criterias
-    // TODO set index on sessionToken in auth_session db table
-    // TODO auth_session cleanup service that will invalidate all expired sessions which are not already deleted
-    // TODO cache session tokens to speed-up token validation on each request
+    // TODO implement a way to terminate user's session and update the cache (when it's done via database)
 
     internal static class AccountService
     {
+        static readonly MemoryCache sessionsCache;
+        static Timer sessionCleanupTimer;
+
+        static AccountService()
+        {
+            sessionsCache = new(new MemoryCacheOptions());
+            sessionCleanupTimer = new Timer(_ => CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
+        }
+
         static readonly ILog logger = LogManager.GetLogger(typeof(AccountService));
 
         internal static ResultOf CreateOrUpdateAccount(CORE_DB_Connection connection)
@@ -336,6 +346,8 @@ namespace Core.Auth.Services
 
                 AUTH_Cookie.UpdateCookie(context, session.session_token);
 
+                sessionsCache.Set(session.session_token, session, new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromHours(1) });
+
                 result.IsSuccess = true;
 
                 returnValue = new ResultOf<LogIn_Response>(result);
@@ -371,6 +383,8 @@ namespace Core.Auth.Services
                     session.modified_at = DateTime.Now;
 
                     auth_session.Database.Save(connection, session);
+
+                    sessionsCache.Remove(session.session_token);
                 }
 
                 AUTH_Cookie.RemoveCookie(context);
@@ -393,16 +407,32 @@ namespace Core.Auth.Services
 
             try
             {
-                var session = auth_session.Database.Search(connection, new auth_session.QueryParameter
+                if (string.IsNullOrEmpty(parameter.SessionToken))
                 {
-                    is_deleted = false,
-                    session_token = parameter.SessionToken
-                }).FirstOrDefault();
+                    return new ResultOf<ValidateSession_Response>(CORE_OperationStatus.FAILED);
+                }
+
+                auth_session.ORM? session = null;
+
+                if (sessionsCache.TryGetValue(parameter.SessionToken, out auth_session.ORM? cachedSession) && cachedSession != null)
+                {
+                    session = cachedSession;
+                }
+                else
+                {
+                    session = auth_session.Database.Search(connection, new auth_session.QueryParameter
+                    {
+                        is_deleted = false,
+                        session_token = parameter.SessionToken
+                    }).FirstOrDefault();
+                }
 
                 if (session == null || session.valid_to < DateTime.UtcNow)
                 {
                     if (session != null)
                     {
+                        sessionsCache.Remove(session.session_token);
+
                         auth_session.Database.SoftDelete(connection, session);
                     }
 
@@ -541,6 +571,45 @@ namespace Core.Auth.Services
             }
 
             return returnValue;
+        }
+
+        static void CleanupSessions()
+        {
+            try
+            {
+                DB_Action.ExecuteCommitAction(CORE_Configuration.Database.ConnectionString, (CORE_DB_Connection DB_Connection) =>
+                {
+                    var tenants = auth_tenant.Database.Search(DB_Connection, new auth_tenant.QueryParameter
+                    {
+                        is_deleted = false
+                    });
+
+                    foreach (var tenant in tenants)
+                    {
+                        var expiredSessions = Get_ExpiredSessions_which_AreNotDeleted.Invoke(DB_Connection.Connection, DB_Connection.Transaction, new P_GESwAND
+                        {
+                            TenantID = tenant.auth_tenant_id,
+                            DateThreshold = DateTime.UtcNow
+                        });
+
+                        if (expiredSessions != null && expiredSessions.Count > 0)
+                        {
+                            var expiredSessionORMs = expiredSessions.Select(x => new auth_session.ORM { auth_session_id = x.auth_session_id }).ToList();
+
+                            auth_session.Database.SoftDelete(DB_Connection, expiredSessionORMs);
+
+                            foreach (var expiredSession in expiredSessions)
+                            {
+                                sessionsCache.Remove(expiredSession.session_token);
+                            }
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to cleanup sessions: ", ex);
+            }
         }
     }
 }

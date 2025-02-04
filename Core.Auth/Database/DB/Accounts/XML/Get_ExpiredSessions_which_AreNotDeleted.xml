@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+
+	<Meta Method_Namespace="Core.Auth.Database.DB.Accounts" Method_ClassName="Get_ExpiredSessions_which_AreNotDeleted" />
+
+	<SQL>
+		SELECT auth_session.auth_session_id, auth_session.session_token FROM auth_session WHERE auth_session.is_deleted = 0 And auth_session.tenant_id = @TenantID And auth_session.valid_to &lt; @DateThreshold
+	</SQL>
+
+	<Parameter ClassName="P_GESwAND">
+		<ClassMember Name="TenantID" Type="int" />
+		<ClassMember Name="DateThreshold" Type="DateTime" />
+	</Parameter>
+
+	<Result>
+
+		<ResultClass Name="GESwAND" IsCollection="true" GroupBy="auth_session_id">
+			<ClassMember Name="auth_session_id" Type="int" />
+			<ClassMember Name="session_token" Type="string" />
+		</ResultClass>
+
+	</Result>
+
+</Template>
