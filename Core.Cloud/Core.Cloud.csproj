@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
+    <ProjectReference Include="..\..\Core.DB.Plugin\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
   </ItemGroup>
 
 </Project>

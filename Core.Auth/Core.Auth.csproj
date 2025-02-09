@@ -29,7 +29,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Core.DB.Plugin\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
-	  <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -40,7 +40,7 @@ namespace Core.Auth.Services
                     email = parameter.Email,
                     username = parameter.Email,
                     password_hash = PasswordHasher.Hash(parameter.Password),
-                    tenant_id = tenant.auth_tenant_id,
+                    tenant_refid = tenant.auth_tenant_id,
                     is_main_account_for_tenant = true,
 
                     created_at = DateTime.Now,
@@ -49,7 +49,7 @@ namespace Core.Auth.Services
 
                 auth_account.Database.Save(connection, account);
 
-                var sendRegistrationEmail = AccountService.SendVerificationEmail(connection, Enumeration.EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_id, account.email);
+                var sendRegistrationEmail = AccountService.SendVerificationEmail(connection, Enumeration.EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_refid, account.email);
 
                 if (!sendRegistrationEmail.Succeeded)
                 {

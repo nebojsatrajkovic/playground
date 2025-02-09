@@ -21,7 +21,7 @@ public static class auth_rightgroup
         public bool is_deleted { get; set; }
         public DateTime created_at { get; set; }
         public DateTime modified_at { get; set; }
-        public int tenant_id { get; set; }
+        public int tenant_refid { get; set; }
 
     }
 
@@ -33,7 +33,7 @@ public static class auth_rightgroup
         public bool? is_deleted { get; set; } = null;
         public DateTime? created_at { get; set; } = null;
         public DateTime? modified_at { get; set; } = null;
-        public int? tenant_id { get; set; } = null;
+        public int? tenant_refid { get; set; } = null;
 
     }
 }

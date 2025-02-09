@@ -103,7 +103,7 @@ namespace Core.Auth.Services
 
                     connection.CommitAndBeginNewTransaction();
 
-                    var sendVerificationEmail = SendVerificationEmail(connection, EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_id, account.email);
+                    var sendVerificationEmail = SendVerificationEmail(connection, EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_refid, account.email);
 
                     if (!sendVerificationEmail.Succeeded)
                     {
@@ -146,7 +146,7 @@ namespace Core.Auth.Services
                 var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
                 {
                     email = parameter.Email,
-                    tenant_id = parameter.TenantID > 0 ? parameter.TenantID : null
+                    tenant_refid = parameter.TenantID > 0 ? parameter.TenantID : null
                 });
 
                 if (accounts == null || accounts.Count == 0)
@@ -166,7 +166,7 @@ namespace Core.Auth.Services
                     return new ResultOf(CORE_OperationStatus.FAILED, "Account has been already verified");
                 }
 
-                var sendRegistrationEmail = SendVerificationEmail(connection, EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_id, account.email);
+                var sendRegistrationEmail = SendVerificationEmail(connection, EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_refid, account.email);
 
                 if (!sendRegistrationEmail.Succeeded)
                 {
@@ -226,7 +226,7 @@ namespace Core.Auth.Services
                     is_forgot_password = verificationTokenType == EVerificationTokenType.ForgotPassword,
                     created_at = DateTime.Now,
                     modified_at = DateTime.Now,
-                    tenant_id = tenantId
+                    tenant_refid = tenantId
                 };
 
                 auth_verification_token.Database.Save(connection, registration_confirmation);
@@ -288,7 +288,7 @@ namespace Core.Auth.Services
                 {
                     email = parameter.Email,
                     is_deleted = false,
-                    tenant_id = parameter.TenantID > 0 ? parameter.TenantID : null
+                    tenant_refid = parameter.TenantID > 0 ? parameter.TenantID : null
                 });
 
                 if (accounts == null || accounts.Count == 0)
@@ -326,7 +326,7 @@ namespace Core.Auth.Services
                     valid_from = DateTime.UtcNow,
                     valid_to = DateTime.UtcNow.AddHours(8),
                     session_token = AUTH_Cookie.GenerateSessionToken(),
-                    tenant_id = account.tenant_id
+                    tenant_refid = account.tenant_refid
                 };
 
                 auth_session.Database.Save(connection, session);
@@ -429,7 +429,7 @@ namespace Core.Auth.Services
                 returnValue = new ResultOf<ValidateSession_Response>(new ValidateSession_Response
                 {
                     AccountID = session.account_refid,
-                    TenantID = session.tenant_id
+                    TenantID = session.tenant_refid
                 });
             }
             catch (Exception ex)
@@ -453,7 +453,7 @@ namespace Core.Auth.Services
                 var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
                 {
                     email = parameter.Email,
-                    tenant_id = parameter.TenantID > 0 ? parameter.TenantID : null
+                    tenant_refid = parameter.TenantID > 0 ? parameter.TenantID : null
                 });
 
                 if (accounts == null || accounts.Count == 0)
@@ -468,7 +468,7 @@ namespace Core.Auth.Services
 
                 var account = accounts[0];
 
-                var sendVerificationEmail = SendVerificationEmail(connection, EVerificationTokenType.ForgotPassword, account.auth_account_id, account.tenant_id, account.email);
+                var sendVerificationEmail = SendVerificationEmail(connection, EVerificationTokenType.ForgotPassword, account.auth_account_id, account.tenant_refid, account.email);
 
                 if (!sendVerificationEmail.Succeeded)
                 {
@@ -523,7 +523,7 @@ namespace Core.Auth.Services
                 var account = auth_account.Database.Search(connection, new auth_account.QueryParameter
                 {
                     auth_account_id = verificationToken.account_refid,
-                    tenant_id = verificationToken.tenant_id
+                    tenant_refid = verificationToken.tenant_refid
                 }).FirstOrDefault();
 
                 if (account == null)

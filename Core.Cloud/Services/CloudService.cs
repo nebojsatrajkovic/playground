@@ -8,6 +8,7 @@ namespace Core.Cloud.Services
     public static class CloudService
     {
         static readonly ILog logger = LogManager.GetLogger(typeof(CloudService));
+        static readonly string FileStoragePath = "FileStorage";
 
         public static void InitializeCloudForUserAccount(Guid userAccountID)
         {
@@ -46,19 +47,21 @@ namespace Core.Cloud.Services
                     return new ResultOf<FileMetadata>(CORE_OperationStatus.FAILED, "Invalid file content.");
                 }
 
-                var folderName = "TODO_folderName";
+                var fileName = context.Request.Headers["X-File-Name"].ToString();
 
-                string storagePath = Path.Combine("FileStorage", userAccountID.ToString(), folderName);
-                Directory.CreateDirectory(storagePath);
-
-                string fileName = context.Request.Headers["X-File-Name"].ToString();
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
                     return new ResultOf<FileMetadata>(CORE_OperationStatus.FAILED, "File name is missing.");
                 }
 
-                string safeFileName = Path.GetFileName(fileName); // avoid path traversal
-                string filePath = Path.Combine(storagePath, safeFileName);
+                var folderName = string.Empty; // TODO get folder by ID
+
+                var storagePath = Path.Combine(FileStoragePath, userAccountID.ToString(), folderName);
+
+                Directory.CreateDirectory(storagePath);
+
+                var safeFileName = Path.GetFileName(fileName); // avoid path traversal
+                var filePath = Path.Combine(storagePath, safeFileName);
 
                 try
                 {
@@ -96,7 +99,7 @@ namespace Core.Cloud.Services
 
                 returnValue = new ResultOf<FileMetadata>(ex);
             }
-
+            
             return returnValue;
         }
     }
