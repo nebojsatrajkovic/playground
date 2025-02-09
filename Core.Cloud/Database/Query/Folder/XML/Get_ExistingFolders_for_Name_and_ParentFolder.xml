@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+
+	<Meta Method_Namespace="Core.Cloud.Database.Query.Folder" Method_ClassName="Get_ExistingFolders_for_Name_and_ParentFolder" />
+
+	<SQL>
+		select cloud_folder.cloud_folder_id
+		FROM cloud_folder
+		WHERE cloud_folder.parent_folder_refid = @ParentFolderID And
+		Lower(cloud_folder.folder_name) = Lower(@FolderName) And
+		cloud_folder.is_deleted = 0 And
+		cloud_folder.auth_account_refid = @AccountID and
+		cloud_folder.tenant_refid = @TenantID
+	</SQL>
+
+	<Parameter ClassName="P_GEFfNaPF">
+		<ClassMember Name="ParentFolderID" Type="int?" />
+		<ClassMember Name="FolderName" Type="string" />
+		<ClassMember Name="AccountID" Type="int" />
+		<ClassMember Name="TenantID" Type="int" />
+	</Parameter>
+
+	<Result>
+
+		<ResultClass Name="GEFfNaPF" IsCollection="true" GroupBy="cloud_folder_id">
+			<ClassMember Name="cloud_folder_id" Type="int" />
+			<ClassMember Name="session_token" Type="string" />
+		</ResultClass>
+
+	</Result>
+
+</Template>

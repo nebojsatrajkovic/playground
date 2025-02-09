@@ -16,7 +16,8 @@ public static class cloud_folder
     {
         [CORE_DB_SQL_PrimaryKey]
         public int cloud_folder_id { get; set; }
-        public string? folder_name { get; set; }
+        public string folder_name { get; set; } = null!;
+        public string folder_path { get; set; } = null!;
         public int? parent_folder_refid { get; set; }
         public int auth_account_refid { get; set; }
         public bool is_deleted { get; set; }
@@ -30,6 +31,7 @@ public static class cloud_folder
     {
         public int? cloud_folder_id { get; set; } = null;
         public string? folder_name { get; set; } = null;
+        public string? folder_path { get; set; } = null;
         public int? parent_folder_refid { get; set; } = null;
         public int? auth_account_refid { get; set; } = null;
         public bool? is_deleted { get; set; } = null;

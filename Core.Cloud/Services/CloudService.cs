@@ -1,5 +1,9 @@
-﻿using Core.Cloud.Models;
+﻿using Core.Cloud.Database.ORM;
+using Core.Cloud.Database.Query.Folder;
+using Core.Cloud.Models.API.File;
+using Core.Cloud.Models.API.Folder;
 using Core.Shared.Models;
+using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
 using Microsoft.AspNetCore.Http;
 
@@ -10,67 +14,191 @@ namespace Core.Cloud.Services
         static readonly ILog logger = LogManager.GetLogger(typeof(CloudService));
         static readonly string FileStoragePath = "FileStorage";
 
-        public static void InitializeCloudForUserAccount(Guid userAccountID)
+        public static ResultOf InitializeCloudForUserAccount(CORE_DB_Connection connection, int userAccountID)
         {
             // initialize folders for newly created user account
+
+            ResultOf returnValue;
+
+            try
+            {
+
+
+                returnValue = new ResultOf(CORE_OperationStatus.SUCCESS);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to initialize cloud for user account: ", ex);
+
+                returnValue = new ResultOf(ex);
+            }
+
+            return returnValue;
         }
 
-        public static void CreateFolder()
+        public static ResultOf<CLOUD_CreateFolder_Result> CreateFolder(CORE_DB_Connection connection, CLOUD_CreateFolder_Request parameter)
         {
-            // create folder
-            // * if name already exists -> reject
+            ResultOf<CLOUD_CreateFolder_Result> returnValue;
+
+            try
+            {
+                var existingFolders = Get_ExistingFolders_for_Name_and_ParentFolder.Invoke(connection.Connection, connection.Transaction, new P_GEFfNaPF
+                {
+                    FolderName = parameter.FolderName,
+                    ParentFolderID = parameter.FolderParent_RefID > 0 ? parameter.FolderParent_RefID : null,
+                    TenantID = parameter.TenantID,
+                    AccountID = parameter.AccountID
+                });
+
+                if (existingFolders != null && existingFolders.Count > 0)
+                {
+                    return new ResultOf<CLOUD_CreateFolder_Result>(CORE_OperationStatus.FAILED, new CLOUD_CreateFolder_Result { IfFailed_FolderWithSameNameAlreadyExists = true }, $"Failed to create a folder '{parameter.FolderName}' since it already exists");
+                }
+
+                var folder = new cloud_folder.ORM
+                {
+                    folder_name = parameter.FolderName,
+                    auth_account_refid = parameter.AccountID,
+                    parent_folder_refid = parameter.FolderParent_RefID > 0 ? parameter.FolderParent_RefID : null,
+                    tenant_refid = parameter.TenantID,
+                    created_at = DateTime.Now,
+                    modified_at = DateTime.Now
+                };
+
+                cloud_folder.Database.Save(connection, folder);
+
+                // TODO create folder on disk as well
+
+                var result = new CLOUD_CreateFolder_Result
+                {
+                    IsSuccess = true,
+                    IfSuccess_FolderID = folder.cloud_folder_id
+                };
+
+                returnValue = new ResultOf<CLOUD_CreateFolder_Result>(result);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to initialize cloud for user account: ", ex);
+
+                returnValue = new ResultOf<CLOUD_CreateFolder_Result>(ex);
+            }
+
+            return returnValue;
         }
 
-        public static void DeleteFolder()
+        public static ResultOf DeleteFolder(CORE_DB_Connection connection, CLOUD_DeleteFolder_Request parameter)
         {
             // delete folder and all it's files
+            // delete the files on disk as well
+
+            ResultOf returnValue;
+
+            try
+            {
+
+
+                returnValue = new ResultOf(CORE_OperationStatus.SUCCESS);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to delete cloud folder: ", ex);
+
+                returnValue = new ResultOf(ex);
+            }
+
+            return returnValue;
         }
 
-        public static void UpdateFolderDetails()
+        public static ResultOf UpdateFolderDetails(CORE_DB_Connection connection)
         {
             // rename folder, etc
+
+            ResultOf returnValue;
+
+            try
+            {
+
+
+                returnValue = new ResultOf(CORE_OperationStatus.SUCCESS);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to update cloud folder details: ", ex);
+
+                returnValue = new ResultOf(ex);
+            }
+
+            return returnValue;
         }
 
-        public static void GetFolderDetails(Guid folderID)
+        public static ResultOf GetFolderDetails(CORE_DB_Connection connection, int folderID)
         {
             // get folder details, sub-folders list, files list
+
+            ResultOf returnValue;
+
+            try
+            {
+
+
+                returnValue = new ResultOf(CORE_OperationStatus.SUCCESS);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to retrieve cloud folder details: ", ex);
+
+                returnValue = new ResultOf(ex);
+            }
+
+            return returnValue;
         }
 
-        public static async Task<ResultOf<FileMetadata>> UploadFile(HttpContext context, Guid folderID, Guid userAccountID)
+        public static async Task<ResultOf<CLOUD_UploadFile_Result>> UploadFile(CORE_DB_Connection connection, HttpContext context, CLOUD_UploadFile_Request parameter)
         {
-            ResultOf<FileMetadata> returnValue;
+            ResultOf<CLOUD_UploadFile_Result> returnValue;
 
             try
             {
                 if (!context.Request.ContentLength.HasValue || context.Request.ContentLength <= 0)
                 {
-                    return new ResultOf<FileMetadata>(CORE_OperationStatus.FAILED, "Invalid file content.");
+                    return new ResultOf<CLOUD_UploadFile_Result>(CORE_OperationStatus.FAILED, new CLOUD_UploadFile_Result { IfFailed_InvalidFileContent = true }, "Invalid file content.");
                 }
 
                 var fileName = context.Request.Headers["X-File-Name"].ToString();
 
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
-                    return new ResultOf<FileMetadata>(CORE_OperationStatus.FAILED, "File name is missing.");
+                    return new ResultOf<CLOUD_UploadFile_Result>(CORE_OperationStatus.FAILED, new CLOUD_UploadFile_Result { IfFailed_InvalidFileName = true }, "File name is missing.");
                 }
 
-                var folderName = string.Empty; // TODO get folder by ID
+                var cloudFolder = cloud_folder.Database.Search(connection, new cloud_folder.QueryParameter
+                {
+                    auth_account_refid = parameter.AccountID,
+                    tenant_refid = parameter.TenantID,
+                    cloud_folder_id = parameter.FolderID
+                }).FirstOrDefault();
 
-                var storagePath = Path.Combine(FileStoragePath, userAccountID.ToString(), folderName);
+                if (cloudFolder == null)
+                {
+                    return new ResultOf<CLOUD_UploadFile_Result>(CORE_OperationStatus.FAILED, new CLOUD_UploadFile_Result { IfFailed_FolderNotFoundInDatabase = true });
+                }
 
-                Directory.CreateDirectory(storagePath);
+                var storagePath = Path.Combine(FileStoragePath, parameter.AccountID.ToString(), cloudFolder.folder_path, cloudFolder.folder_name);
+
+                if (!Directory.Exists(storagePath))
+                {
+                    return new ResultOf<CLOUD_UploadFile_Result>(CORE_OperationStatus.FAILED, new CLOUD_UploadFile_Result { IfFailed_FolderNotFoundOnCloud = true });
+                }
 
                 var safeFileName = Path.GetFileName(fileName); // avoid path traversal
                 var filePath = Path.Combine(storagePath, safeFileName);
 
                 try
                 {
-                    // TODO take care of files being overwritten - potentially ok
+                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
 
-                    using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
-                    {
-                        await context.Request.Body.CopyToAsync(fileStream);
-                    }
+                    await context.Request.Body.CopyToAsync(fileStream);
                 }
                 catch (Exception ex)
                 {
@@ -79,27 +207,29 @@ namespace Core.Cloud.Services
                     throw;
                 }
 
-                var metadata = new FileMetadata
+                var cloudFile = new cloud_file.ORM
                 {
-                    FileID = Guid.NewGuid(),
-                    FileName = fileName,
-                    FilePath = filePath,
-                    FileSize = new FileInfo(filePath).Length,
-                    UploadedAt = DateTime.UtcNow,
-                    UserAccountID = userAccountID
+                    file_name = safeFileName,
+                    file_path = filePath,
+                    file_size_in_bytes = Convert.ToInt32(new FileInfo(filePath).Length),
+                    folder_refid = cloudFolder.cloud_folder_id,
+                    auth_account_refid = parameter.AccountID,
+                    tenant_refid = parameter.TenantID,
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow
                 };
 
-                // TODO store metadata
+                cloud_file.Database.Save(connection, cloudFile);
 
-                returnValue = new ResultOf<FileMetadata>(metadata);
+                returnValue = new ResultOf<CLOUD_UploadFile_Result>(new CLOUD_UploadFile_Result { IsSuccess = true, IfSuccess_FileID = cloudFile.cloud_file_id });
             }
             catch (Exception ex)
             {
                 logger.Error("Failed upload file: ", ex);
 
-                returnValue = new ResultOf<FileMetadata>(ex);
+                returnValue = new ResultOf<CLOUD_UploadFile_Result>(ex);
             }
-            
+
             return returnValue;
         }
     }
