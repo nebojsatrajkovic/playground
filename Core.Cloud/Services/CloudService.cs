@@ -2,6 +2,7 @@
 using Core.Cloud.Database.Query.Folder;
 using Core.Cloud.Models.API.File;
 using Core.Cloud.Models.API.Folder;
+using Core.Shared.Configuration;
 using Core.Shared.Models;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
@@ -12,7 +13,7 @@ namespace Core.Cloud.Services
     public static class CloudService
     {
         static readonly ILog logger = LogManager.GetLogger(typeof(CloudService));
-        static readonly string FileStoragePath = "FileStorage";
+        static readonly string FileStoragePath = CORE_Configuration.Cloud.FileStoragePath;
 
         public static ResultOf InitializeCloudForUserAccount(CORE_DB_Connection connection, int userAccountID)
         {
@@ -42,6 +43,9 @@ namespace Core.Cloud.Services
 
             try
             {
+                // TODO decide how to organize folders on disk
+                // TODO decide how to link the folders in database
+
                 var existingFolders = Get_ExistingFolders_for_Name_and_ParentFolder.Invoke(connection.Connection, connection.Transaction, new P_GEFfNaPF
                 {
                     FolderName = parameter.FolderName,
@@ -184,7 +188,7 @@ namespace Core.Cloud.Services
                     return new ResultOf<CLOUD_UploadFile_Result>(CORE_OperationStatus.FAILED, new CLOUD_UploadFile_Result { IfFailed_FolderNotFoundInDatabase = true });
                 }
 
-                var storagePath = Path.Combine(FileStoragePath, parameter.AccountID.ToString(), cloudFolder.folder_path, cloudFolder.folder_name);
+                var storagePath = Path.Combine(FileStoragePath, parameter.TenantID.ToString(), parameter.AccountID.ToString(), cloudFolder.folder_path, cloudFolder.folder_name);
 
                 if (!Directory.Exists(storagePath))
                 {

@@ -30,6 +30,13 @@ namespace Core.Shared
             {
                 throw new CORE_ConfigurationException("Failed to initialize database configuration!");
             }
+
+            var section_CoreCloud = builder.Configuration.GetSection(nameof(CORE_Cloud));
+
+            if (section_CoreCloud != null)
+            {
+                CORE_Configuration.Cloud = section_CoreCloud.Get<CORE_Cloud>() ?? new CORE_Cloud();
+            }
         }
     }
 }

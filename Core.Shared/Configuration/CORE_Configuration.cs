@@ -4,6 +4,7 @@
     {
         public static CORE_API API { get; set; } = null!;
         public static CORE_Database Database { get; set; } = null!;
+        public static CORE_Cloud Cloud { get; set; } = null!;
     }
 
     public class CORE_API
@@ -14,5 +15,10 @@
     public class CORE_Database
     {
         public string ConnectionString { get; set; } = null!;
+    }
+
+    public class CORE_Cloud
+    {
+        public string FileStoragePath { get; set; } = string.Empty;
     }
 }
