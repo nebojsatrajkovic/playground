@@ -4,15 +4,17 @@ using Core.DB.Plugin.MySQL.Controllers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling.Exceptions;
 using CoreCore.DB.Plugin.Shared.Database;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
-namespace Playground.Controllers
+namespace Core.Auth.Controllers.Abstract
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AbstractController : MySQL_ResultOf_AbstractController
+    public class CORE_AUTH_AbstractController : MySQL_ResultOf_AbstractController
     {
-        protected AbstractController(ILogger logger) : base(logger, CORE_Configuration.Database.ConnectionString)
+        protected CORE_AUTH_AbstractController(ILogger logger) : base(logger, CORE_Configuration.Database.ConnectionString)
         {
 
         }

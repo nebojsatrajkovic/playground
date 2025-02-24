@@ -1,13 +1,15 @@
-﻿using Core.Auth.Models.Account;
+﻿using Core.Auth.Controllers.Abstract;
+using Core.Auth.Models.Account;
 using Core.Auth.Services;
 using Core.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
-namespace Playground.Controllers
+namespace Core.Auth.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticationController(ILogger<AuthenticationController> logger) : AbstractController(logger)
+    public class AuthenticationController(ILogger<AuthenticationController> logger) : CORE_AUTH_AbstractController(logger)
     {
         [HttpPost("log-in")]
         public ResultOf<LogIn_Response> LogIn(LogIn_Request parameter)

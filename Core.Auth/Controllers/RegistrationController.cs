@@ -1,14 +1,16 @@
-﻿using Core.Auth.Models.Account;
+﻿using Core.Auth.Controllers.Abstract;
+using Core.Auth.Models.Account;
 using Core.Auth.Models.Tenant;
 using Core.Auth.Services;
 using Core.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
-namespace Playground.Controllers
+namespace Core.Auth.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RegistrationController(ILogger<RegistrationController> logger) : AbstractController(logger)
+    public class RegistrationController(ILogger<RegistrationController> logger) : CORE_AUTH_AbstractController(logger)
     {
         [HttpPost("register-tenant")]
         public ResultOf<RegisterTenant_Response> RegisterTenant(RegisterTenant_Request parameter)
