@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Core.Auth\Core.Auth.csproj" />
     <ProjectReference Include="..\Core.Cloud\Core.Cloud.csproj" />
-    <ProjectReference Include="..\Core.Report\Core.Report.csproj" />
     <ProjectReference Include="..\CoreDB\CoreDB.csproj" />
   </ItemGroup>
 
