@@ -1,5 +1,5 @@
-﻿using Core.Auth;
-using Core.Auth.Models.Account;
+﻿using Core.Auth.Models.Account;
+using Core.Auth.Services;
 using Core.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +14,7 @@ namespace Playground.Controllers
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Account.LogIn(HttpContext, DB_Connection, parameter);
+                return AuthenticationService.LogIn(HttpContext, DB_Connection, parameter);
             });
         }
 
@@ -23,7 +23,7 @@ namespace Playground.Controllers
         {
             return ExecuteCommitAction(() =>
             {
-                return AUTH.Account.LogOut(HttpContext, DB_Connection);
+                return AuthenticationService.LogOut(HttpContext, DB_Connection);
             });
         }
 
@@ -43,7 +43,7 @@ namespace Playground.Controllers
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Account.TriggerForgotPassword(HttpContext, DB_Connection, parameter);
+                return AuthenticationService.TriggerForgotPassword(HttpContext, DB_Connection, parameter);
             });
         }
 
@@ -52,7 +52,16 @@ namespace Playground.Controllers
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Account.ResetPassword(DB_Connection, parameter);
+                return AuthenticationService.ResetPassword(DB_Connection, parameter);
+            });
+        }
+
+        [HttpPost("get-tenants-for-account-email")]
+        public ResultOf<List<TenantForAccount>> GetAccountTenants(GetTenantsForAccount_Request parameter)
+        {
+            return ExecuteUnauthenticatedCommitAction(() =>
+            {
+                return AuthenticationService.GetAccountTenants(DB_Connection, parameter);
             });
         }
     }

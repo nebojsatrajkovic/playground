@@ -1,6 +1,6 @@
-﻿using Core.Auth;
-using Core.Auth.Models.Account;
+﻿using Core.Auth.Models.Account;
 using Core.Auth.Models.Tenant;
+using Core.Auth.Services;
 using Core.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +15,7 @@ namespace Playground.Controllers
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Tenant.CreateOrUpdateTenant(DB_Connection, parameter);
+                return RegistrationService.RegisterTenant(DB_Connection, parameter);
             });
         }
 
@@ -24,7 +24,7 @@ namespace Playground.Controllers
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Account.ResendRegistrationConfirmationEmail(DB_Connection, parameter);
+                return RegistrationService.ResendRegistrationConfirmationEmail(DB_Connection, parameter);
             });
         }
 
@@ -33,16 +33,7 @@ namespace Playground.Controllers
         {
             return ExecuteUnauthenticatedCommitAction(() =>
             {
-                return AUTH.Account.ConfirmRegistration(DB_Connection, new ConfirmRegistration_Request { Token = token });
-            });
-        }
-
-        [HttpPost("get-tenants-for-account-email")]
-        public ResultOf<List<TenantForAccount>> GetAccountTenants(GetTenantsForAccount_Request parameter)
-        {
-            return ExecuteUnauthenticatedCommitAction(() =>
-            {
-                return AUTH.Account.GetAccountTenants(DB_Connection, parameter);
+                return RegistrationService.ConfirmRegistration(DB_Connection, new ConfirmRegistration_Request { Token = token });
             });
         }
     }

@@ -1,5 +1,5 @@
-﻿using Core.Auth;
-using Core.Auth.Models.Account;
+﻿using Core.Auth.Models.Account;
+using Core.Auth.Services;
 using Core.DB.Plugin.MySQL.Controllers;
 using Core.Shared.Configuration;
 using Core.Shared.ExceptionHandling.Exceptions;
@@ -25,7 +25,7 @@ namespace Playground.Controllers
 
             if (!string.IsNullOrEmpty(sessionToken))
             {
-                var validationResult = AUTH.Account.ValidateSession(HttpContext, dbConnection, new ValidateSession_Request { SessionToken = sessionToken });
+                var validationResult = AuthenticationService.ValidateSession(HttpContext, dbConnection, new ValidateSession_Request { SessionToken = sessionToken });
 
                 isAuthenticated = validationResult.Succeeded;
             }

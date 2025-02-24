@@ -1,6 +1,6 @@
 ﻿namespace Core.Auth.Enumeration
 {
-    internal enum EVerificationTokenType
+    public enum EVerificationTokenType
     {
         AccountVerification,
         ForgotPassword
