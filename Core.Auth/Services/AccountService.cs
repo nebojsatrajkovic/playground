@@ -44,6 +44,8 @@ namespace Core.Auth.Services
 
             try
             {
+                // TODO
+
                 // watch out for the master account
 
                 // this method should update only the logged in account
@@ -106,8 +108,4 @@ namespace Core.Auth.Services
             return returnValue;
         }
     }
-
-    // TODO method to update tenant data
-
-    // TODO implement a way to terminate user's session and update the cache (when it's done via database)
 }

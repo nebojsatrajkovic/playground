@@ -6,26 +6,25 @@ using Core.DB.Plugin.MySQL;
 using Core.Shared.Configuration;
 using Core.Shared.Models;
 using Core.Shared.Utils;
+using Core.Shared.Utils.ThreadsafeCollections;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Core.Auth.Services
 {
     public static class AuthenticationService
     {
-        static readonly MemoryCache sessionsCache;
-        static Timer sessionCleanupTimer;
+        static readonly CORE_TS_Dictionary<string, auth_session.ORM> sessionsCache;
+        static readonly Timer sessionCacheRefreshTimer;
+        static readonly Timer sessionCleanupTimer;
 
         static readonly ILog logger = LogManager.GetLogger(typeof(AuthenticationService));
 
-        // TODO implement session cache data refresh in the background - load only those that are in the cache and update
-        // rest of them will be updated when necessary
-
         static AuthenticationService()
         {
-            sessionsCache = new(new MemoryCacheOptions());
+            sessionsCache = new CORE_TS_Dictionary<string, auth_session.ORM>(TimeSpan.FromMinutes(60));
+            sessionCacheRefreshTimer = new Timer(_ => RefreshSessionCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
             sessionCleanupTimer = new Timer(_ => CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
         }
 
@@ -84,7 +83,7 @@ namespace Core.Auth.Services
 
                 AUTH_Cookie.UpdateCookie(context, session.session_token);
 
-                sessionsCache.Set(session.session_token, session, new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromHours(1) });
+                sessionsCache.AddOrUpdate(session.session_token, session);
 
                 returnValue = new ResultOf<LogIn_Response>(new LogIn_Response { IsSuccess = true });
             }
@@ -358,6 +357,50 @@ namespace Core.Auth.Services
             }
 
             return sessionToken ?? string.Empty;
+        }
+
+        static void RefreshSessionCache()
+        {
+            try
+            {
+                var currentSessionsByTenant = sessionsCache.ToList().GroupBy(x => x.tenant_refid).ToDictionary(x => x.Key, x => x.ToList());
+
+                if (currentSessionsByTenant.Count == 0) { return; }
+
+                DB_Action.ExecuteCommitAction(CORE_Configuration.Database.ConnectionString, (CORE_DB_Connection DB_Connection) =>
+                {
+                    foreach (var tenantId in currentSessionsByTenant.Keys)
+                    {
+                        var sessions = currentSessionsByTenant[tenantId];
+
+                        var sessionIds = sessions.Select(x => (object?)x.auth_session_id).ToList();
+
+                        var dbSessions = auth_session.Database.Search(DB_Connection, sessionIds)
+                            .GroupBy(x => x.session_token).ToDictionary(x => x.Key, x => x.First());
+
+                        foreach (var session in sessions)
+                        {
+                            if (dbSessions.TryGetValue(session.session_token, out var dbSession) && dbSession != null)
+                            {
+                                if (dbSession.is_deleted || dbSession.valid_to < DateTime.UtcNow)
+                                {
+                                    sessionsCache.Remove(session.session_token);
+                                }
+
+                                sessionsCache.AddOrUpdate(session.session_token, dbSession);
+                            }
+                            else
+                            {
+                                sessionsCache.Remove(session.session_token);
+                            }
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to refresh sessions cache: ", ex);
+            }
         }
 
         static void CleanupSessions()

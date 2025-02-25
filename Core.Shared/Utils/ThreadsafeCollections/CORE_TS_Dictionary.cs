@@ -2,9 +2,25 @@
 {
     public class CORE_TS_Dictionary<TKey, TValue> : IDisposable where TKey : notnull
     {
-        Dictionary<TKey, TValue> dictionary = [];
+        Dictionary<TKey, (TValue Value, DateTime LastAccessed)> dictionary = [];
         readonly object padlock = new();
         bool disposed = false;
+
+        readonly TimeSpan? expirationTime;
+        readonly CancellationTokenSource? cts;
+        readonly Task? cleanupTask;
+
+        public CORE_TS_Dictionary()
+        {
+
+        }
+
+        public CORE_TS_Dictionary(TimeSpan expiration)
+        {
+            expirationTime = expiration;
+            cts = new CancellationTokenSource();
+            cleanupTask = Task.Run(CleanupExpiredEntries, cts.Token);
+        }
 
         /// <summary>
         /// Get the count of elements in a thread-safe manner.
@@ -33,7 +49,7 @@
 
             lock (padlock)
             {
-                dictionary.Add(key, value);
+                dictionary[key] = (value, DateTime.UtcNow);
             }
         }
 
@@ -49,7 +65,12 @@
 
             lock (padlock)
             {
-                return dictionary.TryAdd(key, value);
+                if (!dictionary.ContainsKey(key))
+                {
+                    dictionary[key] = (value, DateTime.UtcNow);
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -64,7 +85,7 @@
 
             lock (padlock)
             {
-                dictionary[key] = value;
+                dictionary[key] = (value, DateTime.UtcNow);
             }
         }
 
@@ -79,7 +100,26 @@
 
             lock (padlock)
             {
-                return dictionary[key];
+                if (dictionary.TryGetValue(key, out var entry))
+                {
+                    dictionary[key] = (entry.Value, DateTime.UtcNow);
+                    return entry.Value;
+                }
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of values contained within the thread-safe dictionary
+        /// </summary>
+        /// <returns></returns>
+        public List<TValue> ToList()
+        {
+            if (disposed) return [];
+
+            lock (padlock)
+            {
+                return dictionary.Values.Select(entry => entry.Value).ToList();
             }
         }
 
@@ -99,7 +139,14 @@
 
             lock (padlock)
             {
-                return dictionary.TryGetValue(key, out value);
+                if (dictionary.TryGetValue(key, out var entry))
+                {
+                    dictionary[key] = (entry.Value, DateTime.UtcNow);
+                    value = entry.Value;
+                    return true;
+                }
+                value = default;
+                return false;
             }
         }
 
@@ -164,6 +211,9 @@
             {
                 if (disposing)
                 {
+                    cts.Cancel();
+                    cleanupTask.Wait();
+
                     lock (padlock)
                     {
                         dictionary.Clear();
@@ -172,6 +222,28 @@
                 }
 
                 disposed = true;
+            }
+        }
+
+        async Task CleanupExpiredEntries()
+        {
+            while (cts != null && !cts.Token.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1), cts.Token);
+
+                lock (padlock)
+                {
+                    DateTime now = DateTime.UtcNow;
+                    var expiredKeys = dictionary
+                        .Where(kvp => (now - kvp.Value.LastAccessed) > expirationTime)
+                        .Select(kvp => kvp.Key)
+                        .ToList();
+
+                    foreach (var key in expiredKeys)
+                    {
+                        dictionary.Remove(key);
+                    }
+                }
             }
         }
 
