@@ -20,6 +20,9 @@ namespace Core.Auth.Services
 
         static readonly ILog logger = LogManager.GetLogger(typeof(AuthenticationService));
 
+        // TODO implement session cache data refresh in the background - load only those that are in the cache and update
+        // rest of them will be updated when necessary
+
         static AuthenticationService()
         {
             sessionsCache = new(new MemoryCacheOptions());
@@ -134,20 +137,22 @@ namespace Core.Auth.Services
             return returnValue;
         }
 
-        public static ResultOf<ValidateSession_Response> ValidateSession(HttpContext context, CORE_DB_Connection connection, ValidateSession_Request parameter)
+        public static ResultOf<SessionInfo> GetSessionInfo(HttpContext context, CORE_DB_Connection connection)
         {
-            ResultOf<ValidateSession_Response> returnValue;
+            ResultOf<SessionInfo> returnValue;
 
             try
             {
-                if (string.IsNullOrEmpty(parameter.SessionToken))
+                var sessionToken = GetSessionToken(context);
+
+                if (string.IsNullOrEmpty(sessionToken))
                 {
-                    return new ResultOf<ValidateSession_Response>(CORE_OperationStatus.FAILED);
+                    return new ResultOf<SessionInfo>(CORE_OperationStatus.FAILED);
                 }
 
                 auth_session.ORM? session = null;
 
-                if (sessionsCache.TryGetValue(parameter.SessionToken, out auth_session.ORM? cachedSession) && cachedSession != null)
+                if (sessionsCache.TryGetValue(sessionToken, out auth_session.ORM? cachedSession) && cachedSession != null)
                 {
                     session = cachedSession;
                 }
@@ -156,7 +161,7 @@ namespace Core.Auth.Services
                     session = auth_session.Database.Search(connection, new auth_session.QueryParameter
                     {
                         is_deleted = false,
-                        session_token = parameter.SessionToken
+                        session_token = sessionToken
                     }).FirstOrDefault();
                 }
 
@@ -171,10 +176,10 @@ namespace Core.Auth.Services
 
                     AUTH_Cookie.RemoveCookie(context);
 
-                    return new ResultOf<ValidateSession_Response>(CORE_OperationStatus.FAILED);
+                    return new ResultOf<SessionInfo>(CORE_OperationStatus.FAILED);
                 }
 
-                returnValue = new ResultOf<ValidateSession_Response>(new ValidateSession_Response
+                returnValue = new ResultOf<SessionInfo>(new SessionInfo
                 {
                     AccountID = session.account_refid,
                     TenantID = session.tenant_refid
@@ -184,7 +189,7 @@ namespace Core.Auth.Services
             {
                 logger.Error("Failed to validate session: ", ex);
 
-                returnValue = new ResultOf<ValidateSession_Response>(ex);
+                returnValue = new ResultOf<SessionInfo>(ex);
             }
 
             return returnValue;
@@ -330,6 +335,29 @@ namespace Core.Auth.Services
             }
 
             return returnValue;
+        }
+
+        static string GetSessionToken(HttpContext context)
+        {
+            var sessionToken = string.Empty;
+
+            try
+            {
+                context.Request.Cookies.TryGetValue(CORE_Configuration.API.AuthKey, out sessionToken);
+
+                if (string.IsNullOrEmpty(sessionToken))
+                {
+                    context.Request.Headers.TryGetValue(CORE_Configuration.API.AuthKey, out var sessionTokenValue);
+
+                    sessionToken = sessionTokenValue;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return sessionToken ?? string.Empty;
         }
 
         static void CleanupSessions()

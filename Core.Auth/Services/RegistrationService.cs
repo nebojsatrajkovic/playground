@@ -21,6 +21,11 @@ namespace Core.Auth.Services
 
             try
             {
+                if (!PasswordHelper.IsStrongPassword(parameter.Password))
+                {
+                    return new ResultOf<RegisterTenant_Response>(CORE_OperationStatus.FAILED, "Password is not strong enough. Password should be at least 8 characters long, contain one uppercase letter, one lowercase letter and one special character.");
+                }
+
                 var tenantsForName = Get_Tenants_for_Name.Invoke(connection.Connection, connection.Transaction, new P_GTfN { Name = parameter.TenantName });
 
                 if (tenantsForName != null && tenantsForName.Count > 0)

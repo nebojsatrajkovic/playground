@@ -24,7 +24,7 @@ public static class auth_account
         public DateTime modified_at { get; set; }
         public int tenant_refid { get; set; }
         public bool is_verified { get; set; }
-        public bool is_disabled { get; set; }
+        public bool is_deactivated { get; set; }
         public bool is_main_account_for_tenant { get; set; }
 
     }

@@ -24,10 +24,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Database\ORM\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\..\Core.DB.Plugin\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
 	</ItemGroup>
 
