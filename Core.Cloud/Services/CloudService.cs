@@ -65,8 +65,8 @@ namespace Core.Cloud.Services
                     auth_account_refid = parameter.AccountID,
                     parent_folder_refid = parameter.FolderParent_RefID > 0 ? parameter.FolderParent_RefID : null,
                     tenant_refid = parameter.TenantID,
-                    created_at = DateTime.Now,
-                    modified_at = DateTime.Now
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow
                 };
 
                 cloud_folder.Database.Save(connection, folder);

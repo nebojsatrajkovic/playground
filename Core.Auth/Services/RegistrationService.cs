@@ -37,8 +37,8 @@ namespace Core.Auth.Services
                 {
                     tenant_name = parameter.TenantName,
 
-                    created_at = DateTime.Now,
-                    modified_at = DateTime.Now
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow
                 };
 
                 auth_tenant.Database.Save(connection, tenant);
@@ -51,8 +51,8 @@ namespace Core.Auth.Services
                     tenant_refid = tenant.auth_tenant_id,
                     is_main_account_for_tenant = true,
 
-                    created_at = DateTime.Now,
-                    modified_at = DateTime.Now
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow
                 };
 
                 auth_account.Database.Save(connection, account);
@@ -128,7 +128,7 @@ namespace Core.Auth.Services
                     return new ResultOf<ConfirmRegistration_Response>(CORE_OperationStatus.SUCCESS, "Account is already verified");
                 }
 
-                if (DateTime.Now > confirmationRequest.expires_at)
+                if (DateTime.UtcNow > confirmationRequest.expires_at)
                 {
                     confirmationRequest.is_deleted = true;
 
@@ -227,12 +227,12 @@ namespace Core.Auth.Services
                 var registration_confirmation = new auth_verification_token.ORM
                 {
                     account_refid = accountId,
-                    expires_at = verificationTokenType == EVerificationTokenType.AccountVerification ? DateTime.Now.AddHours(24) : DateTime.Now.AddMinutes(30),
+                    expires_at = verificationTokenType == EVerificationTokenType.AccountVerification ? DateTime.UtcNow.AddHours(24) : DateTime.UtcNow.AddMinutes(30),
                     token = Guid.NewGuid().ToString(),
                     is_account_verification = verificationTokenType == EVerificationTokenType.AccountVerification,
                     is_forgot_password = verificationTokenType == EVerificationTokenType.ForgotPassword,
-                    created_at = DateTime.Now,
-                    modified_at = DateTime.Now,
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow,
                     tenant_refid = tenantId
                 };
 

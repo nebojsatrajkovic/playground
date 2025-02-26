@@ -71,8 +71,8 @@ namespace Core.Auth.Services
                 var session = new auth_session.ORM
                 {
                     account_refid = account.auth_account_id,
-                    created_at = DateTime.Now,
-                    modified_at = DateTime.Now,
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow,
                     valid_from = DateTime.UtcNow,
                     valid_to = DateTime.UtcNow.AddHours(8),
                     session_token = AUTH_Cookie.GenerateSessionToken(),
@@ -115,7 +115,7 @@ namespace Core.Auth.Services
                 {
                     session.valid_to = DateTime.UtcNow.AddMinutes(-1);
                     session.is_deleted = true;
-                    session.modified_at = DateTime.Now;
+                    session.modified_at = DateTime.UtcNow;
 
                     auth_session.Database.Save(connection, session);
 
@@ -261,7 +261,7 @@ namespace Core.Auth.Services
                     return new ResultOf<ResetPassword_Response>(CORE_OperationStatus.FAILED, "This forgot password request has already been processed");
                 }
 
-                if (verificationToken.expires_at < DateTime.Now)
+                if (verificationToken.expires_at < DateTime.UtcNow)
                 {
                     verificationToken.is_deleted = true;
 

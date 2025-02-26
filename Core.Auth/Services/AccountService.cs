@@ -1,5 +1,9 @@
-﻿using Core.Auth.Models.Account;
+﻿using Core.Auth.Database.DB.Accounts;
+using Core.Auth.Database.ORM;
+using Core.Auth.Enumeration;
+using Core.Auth.Models.Account;
 using Core.Shared.Models;
+using Core.Shared.Utils;
 using CoreCore.DB.Plugin.Shared.Database;
 using log4net;
 
@@ -15,16 +19,44 @@ namespace Core.Auth.Services
 
             try
             {
-                // TODO check if the email already exists
+                var dbAccountsForEmail = Get_Accounts_for_Email.Invoke(connection.Connection, connection.Transaction, new P_GAfE
+                {
+                    Email = parameter.Email,
+                    TenantID = connection.TenantID
+                });
 
-                // TODO check password validity
+                if (dbAccountsForEmail != null && dbAccountsForEmail.Count > 0)
+                {
+                    return new ResultOf<CreateAccount_Response>(CORE_OperationStatus.FAILED, $"Failed to create an account with email {parameter.Email} since it already exists for tenant with id {connection.TenantID}");
+                }
 
+                if (!PasswordHelper.IsStrongPassword(parameter.Password))
+                {
+                    return new ResultOf<CreateAccount_Response>(CORE_OperationStatus.FAILED, "Password is not strong enough. Password should be at least 8 characters long, contain one uppercase letter, one lowercase letter and one special character.");
+                }
 
-                // watch out for the master account
+                var account = new auth_account.ORM
+                {
+                    email = parameter.Email,
+                    username = parameter.Email,
+                    password_hash = PasswordHasher.Hash(parameter.Password),
+                    tenant_refid = connection.TenantID,
+                    created_at = DateTime.UtcNow,
+                    modified_at = DateTime.UtcNow,
+                    is_verified = parameter.IsVerified
+                };
 
-                // this method should update only the logged in account
+                auth_account.Database.Save(connection, account);
 
-                // if create account -> decide whether to automatically approve it or he needs to confirm his email address
+                if (!parameter.IsVerified)
+                {
+                    var sendRegistrationEmail = RegistrationService.SendVerificationEmail(connection, EVerificationTokenType.AccountVerification, account.auth_account_id, account.tenant_refid, account.email);
+
+                    if (!sendRegistrationEmail.Succeeded)
+                    {
+                        return new ResultOf<CreateAccount_Response>(sendRegistrationEmail);
+                    }
+                }
 
                 returnValue = new ResultOf<CreateAccount_Response>(CORE_OperationStatus.SUCCESS);
             }

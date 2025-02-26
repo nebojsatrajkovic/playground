@@ -19,7 +19,7 @@ namespace Core.Auth
 
             context.Response.Cookies.Append(CORE_Configuration.API.AuthKey, sessionToken, new CookieOptions
             {
-                Expires = DateTime.Now.AddHours(8),
+                Expires = DateTime.UtcNow.AddHours(8),
                 Domain = domain,
                 IsEssential = true,
                 SameSite = SameSiteMode.None,
