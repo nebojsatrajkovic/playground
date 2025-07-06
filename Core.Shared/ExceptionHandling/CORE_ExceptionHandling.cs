@@ -27,13 +27,11 @@ namespace Core.Shared.ExceptionHandling
 
                             await context.Response.WriteAsync(JsonSerializer.Serialize(new { data = $"{(int)HttpStatusCode.Unauthorized} {HttpStatusCode.Unauthorized} - invalid session" }));
                         }
-                        else
-                        {
-                            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-                            await context.Response.WriteAsync("Unexpected error has occurred.");
-                        }
                     }
+
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                    await context.Response.WriteAsync("Unexpected error has occurred.");
                 });
             });
 
