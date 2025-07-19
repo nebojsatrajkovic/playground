@@ -28,6 +28,7 @@ namespace Core.Auth.Controllers.Abstract
 
             connection.AccountID = sessionInfo.OperationResult?.AccountID ?? 0;
             connection.TenantID = sessionInfo.OperationResult?.TenantID ?? 0;
+            connection.SessionToken = sessionInfo.OperationResult?.SessionToken;
         }
     }
 }

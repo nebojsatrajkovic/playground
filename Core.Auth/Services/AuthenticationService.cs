@@ -181,7 +181,8 @@ namespace Core.Auth.Services
                 returnValue = new ResultOf<SessionInfo>(new SessionInfo
                 {
                     AccountID = session.account_refid,
-                    TenantID = session.tenant_refid
+                    TenantID = session.tenant_refid,
+                    SessionToken = sessionToken
                 });
             }
             catch (Exception ex)
