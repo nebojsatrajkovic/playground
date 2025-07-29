@@ -1,4 +1,5 @@
 ﻿using Core.Shared.Models;
+using Core.Stripe.Models.Customer;
 using Core.Stripe.Models.Product;
 using log4net;
 using Stripe;
@@ -82,6 +83,76 @@ namespace Core.Stripe.Services
                 logger.Error(ex);
 
                 returnValue = new ResultOf<Product>(ex);
+            }
+
+            return returnValue;
+        }
+
+        public static async Task<ResultOf<Customer>> CreateCustomer(STRIPE_CreateCustomer_Request parameter)
+        {
+            ResultOf<Customer> returnValue;
+
+            try
+            {
+                var optionsCustomer = new CustomerCreateOptions
+                {
+                    Address = new AddressOptions(),
+                    Balance = 0,
+                    CashBalance = new CustomerCashBalanceOptions { Settings = new CustomerCashBalanceSettingsOptions { ReconciliationMode = "automatic" } },
+                    Description = string.Empty,
+                    Email = parameter.Email,
+                    InvoicePrefix = $"000{DateTime.Now.Millisecond}",
+                    InvoiceSettings = new CustomerInvoiceSettingsOptions
+                    {
+                        DefaultPaymentMethod = null,
+                        Footer = $"Invoice footer for {parameter.FirstName} {parameter.LastName}",
+                        RenderingOptions = new CustomerInvoiceSettingsRenderingOptionsOptions
+                        {
+                            AmountTaxDisplay = "include_inclusive_tax"
+                        },
+                        CustomFields = []
+                    },
+                    Name = $"{parameter.FirstName} {parameter.LastName}",
+                    NextInvoiceSequence = 1,
+                    Phone = string.Empty,
+                    PreferredLocales = ["de"],
+                    Shipping = new ShippingOptions
+                    {
+                        Address = new AddressOptions
+                        {
+                            City = string.Empty,
+                            Country = string.Empty,
+                            Line1 = string.Empty,
+                            Line2 = string.Empty,
+                            PostalCode = string.Empty,
+                            State = string.Empty
+                        },
+                        Name = $"{parameter.FirstName} {parameter.LastName}",
+                        Phone = string.Empty
+                    },
+                    Source = null,
+                    Tax = new CustomerTaxOptions
+                    {
+                        IpAddress = parameter.IPAddress
+                    },
+                    TaxExempt = "none",
+                    Metadata = []
+                };
+
+#if DEBUG
+                optionsCustomer.Tax.IpAddress = "175.216.11.165";
+#endif
+
+                var customerService = new CustomerService();
+                var customer = await customerService.CreateAsync(optionsCustomer);
+
+                returnValue = new ResultOf<Customer>(customer);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+
+                returnValue = new ResultOf<Customer>(ex);
             }
 
             return returnValue;

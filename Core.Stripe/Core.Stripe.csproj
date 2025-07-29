@@ -14,4 +14,9 @@
     <ProjectReference Include="..\..\Core.DB.Plugin\Core.DB.Plugin.MySQL\Core.DB.Plugin.MySQL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Database\Query\" />
+    <Folder Include="Database\ORM\" />
+  </ItemGroup>
+
 </Project>
