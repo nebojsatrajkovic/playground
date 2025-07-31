@@ -7,7 +7,8 @@ namespace Core.Shared.Models
         SUCCESS = 1,
         FAILED,
         ERROR,
-        TIMED_OUT
+        TIMED_OUT,
+        UNAUTHORIZED
     }
 
     public abstract class AResultOf

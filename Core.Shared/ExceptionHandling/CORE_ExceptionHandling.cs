@@ -1,4 +1,5 @@
 ﻿using Core.Shared.ExceptionHandling.Exceptions;
+using Core.Shared.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -25,13 +26,17 @@ namespace Core.Shared.ExceptionHandling
                         {
                             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
 
-                            await context.Response.WriteAsync(JsonSerializer.Serialize(new { data = $"{(int)HttpStatusCode.Unauthorized} {HttpStatusCode.Unauthorized} - invalid session" }));
+                            await context.Response.WriteAsync(JsonSerializer.Serialize(new ResultOf(CORE_OperationStatus.UNAUTHORIZED, $"{(int)HttpStatusCode.Unauthorized} {HttpStatusCode.Unauthorized} - invalid session")));
+
+                            return; // prevent writing default error
                         }
                     }
 
+                    // generic error response (no stack trace or error message exposed)
+
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-                    await context.Response.WriteAsync("Unexpected error has occurred.");
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(new ResultOf(CORE_OperationStatus.ERROR, "Unexpected error has occurred.")));
                 });
             });
 
