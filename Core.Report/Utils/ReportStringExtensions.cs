@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Core.Report.Utils
+﻿namespace Core.Report.Utils
 {
     public static class ReportStringExtensions
     {
