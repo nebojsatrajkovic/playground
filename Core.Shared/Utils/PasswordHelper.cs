@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -112,9 +113,7 @@ namespace Core.Shared.Utils
         {
             if (string.IsNullOrWhiteSpace(password)) return false;
 
-#if DEBUG
-            return true;
-#endif
+            if (Debugger.IsAttached) return true;
 
             var pattern = @"^(?=.*[A-Z])(?=.*[a-z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$";
 

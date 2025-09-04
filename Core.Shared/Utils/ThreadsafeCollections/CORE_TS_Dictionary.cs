@@ -211,8 +211,8 @@
             {
                 if (disposing)
                 {
-                    cts.Cancel();
-                    cleanupTask.Wait();
+                    cts?.Cancel();
+                    cleanupTask?.Wait();
 
                     lock (padlock)
                     {
