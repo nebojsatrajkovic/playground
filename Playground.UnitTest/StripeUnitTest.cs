@@ -1,13 +1,18 @@
+using Playground.UnitTest.Services;
+
 namespace Playground.UnitTest
 {
     public class StripeUnitTest
     {
         [Fact]
-        public void Test1()
+        public async Task TestProductCreation()
         {
-            var result = 2 + 3;
+            var exampleProducts = await StripeTestService.CreateExampleProducts();
 
-            Assert.Equal(5, result);
+            Assert.True(exampleProducts.Succeeded, exampleProducts.Message);
+            Assert.NotNull(exampleProducts.OperationResult);
+            Assert.NotEmpty(exampleProducts.OperationResult);
+            Assert.All(exampleProducts.OperationResult, x => Assert.False(string.IsNullOrEmpty(x.Key), "Product key should not be null or empty"));
         }
     }
-} 
+}
