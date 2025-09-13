@@ -13,13 +13,13 @@ namespace Core.Auth.Services
     {
         static readonly ILog logger = LogManager.GetLogger(typeof(AccountService));
 
-        public static ResultOf<CreateAccount_Response> CreateAccount(CORE_DB_Connection connection, CreateAccount_Request parameter)
+        public static async Task<ResultOf<CreateAccount_Response>> CreateAccount(CORE_DB_Connection connection, CreateAccount_Request parameter)
         {
             ResultOf<CreateAccount_Response> returnValue;
 
             try
             {
-                var dbAccountsForEmail = Get_Accounts_for_Email.Invoke(connection.Connection, connection.Transaction, new P_GAfE
+                var dbAccountsForEmail = await Get_Accounts_for_Email.InvokeAsync(connection.Connection, connection.Transaction, new P_GAfE
                 {
                     Email = parameter.Email,
                     TenantID = connection.TenantID
