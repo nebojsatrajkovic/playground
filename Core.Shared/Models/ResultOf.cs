@@ -143,5 +143,7 @@ namespace Core.Shared.Models
             Message = string.IsNullOrEmpty(message) ? resultOf.Message : message;
             NestedResult = resultOf;
         }
+
+        public static ResultOf Success => new(CORE_OperationStatus.SUCCESS);
     }
 }
