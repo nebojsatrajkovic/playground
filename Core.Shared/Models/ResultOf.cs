@@ -145,5 +145,6 @@ namespace Core.Shared.Models
         }
 
         public static ResultOf Success => new(CORE_OperationStatus.SUCCESS);
+        public static ResultOf Unauthorized => new(CORE_OperationStatus.UNAUTHORIZED);
     }
 }

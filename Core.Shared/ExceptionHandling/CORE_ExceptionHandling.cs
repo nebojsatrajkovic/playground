@@ -30,6 +30,14 @@ namespace Core.Shared.ExceptionHandling
 
                             return; // prevent writing default error
                         }
+                        else if (contextFeature.Error is CORE_UnauthorizedException)
+                        {
+                            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+
+                            await context.Response.WriteAsync(JsonSerializer.Serialize(new ResultOf(CORE_OperationStatus.UNAUTHORIZED, $"{(int)HttpStatusCode.Unauthorized} {HttpStatusCode.Unauthorized} - not permitted to execute the action")));
+
+                            return; // prevent writing default error
+                        }
                     }
 
                     // generic error response (no stack trace or error message exposed)

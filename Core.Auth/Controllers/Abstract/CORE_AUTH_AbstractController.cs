@@ -30,5 +30,15 @@ namespace Core.Auth.Controllers.Abstract
             connection.TenantID = sessionInfo.OperationResult?.TenantID ?? 0;
             connection.SessionToken = sessionInfo.OperationResult?.SessionToken;
         }
+
+        protected override void Authorize(CORE_DB_Connection connection, List<string> requiredRights)
+        {
+            var result = AuthorizationService.ValidateRequiredRightsAsync(connection, requiredRights).Result;
+
+            if (!result.Succeeded)
+            {
+                throw new CORE_UnauthorizedException("User doesn't have enough rights to perform this action!");
+            }
+        }
     }
 }

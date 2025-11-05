@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+
+	<Meta Method_Namespace="Core.Auth.Database.DB.Accounts" Method_ClassName="Get_Account_Rights" />
+
+	<SQL>
+		SELECT
+		auth_right.auth_right_id,
+		auth_right.right_code,
+		auth_right.right_gid
+		FROM
+		auth_account_2_right
+		INNER JOIN auth_right
+		ON
+		auth_account_2_right.right_refid = auth_right.auth_right_id
+		AND auth_right.is_deleted = 0 AND
+		auth_right.tenant_refid = @TenantID
+
+		WHERE
+		auth_account_2_right.is_deleted = 0 AND
+		auth_account_2_right.tenant_refid = @TenantID And
+		auth_account_2_right.account_refid = @AccountID
+	</SQL>
+
+	<Parameter ClassName="P_GAR">
+		<ClassMember Name="AccountID" Type="int" />
+		<ClassMember Name="TenantID" Type="int" />
+	</Parameter>
+
+	<Result>
+
+		<ResultClass Name="GAR" IsCollection="true" GroupBy="auth_right_id">
+			<ClassMember Name="auth_right_id" Type="int" />
+			<ClassMember Name="right_code" Type="string" />
+			<ClassMember Name="right_gid" Type="Guid" />
+		</ResultClass>
+
+	</Result>
+
+</Template>
