@@ -10,13 +10,15 @@ namespace Core.Auth.Services
 {
     public static class AuthorizationService
     {
-        static readonly CORE_TS_Dictionary<int, CachedRight> CachedRights;
+        static readonly CORE_TS_Dictionary<int, AUTH_CACHE_Right> CachedRights;
+        static readonly Timer cacheRefreshTimer;
 
         static readonly ILog logger = LogManager.GetLogger(typeof(AuthorizationService));
 
         static AuthorizationService()
         {
-            CachedRights = new(TimeSpan.FromMinutes(30));
+            CachedRights = new(TimeSpan.FromMinutes(10));
+            cacheRefreshTimer = new Timer(async _ => await RefreshCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
         }
 
         public async static Task<ResultOf> ValidateRequiredRightsAsync(CORE_DB_Connection connection, List<string> requiredRights)
@@ -46,7 +48,7 @@ namespace Core.Auth.Services
 
                 if (dbAccountRights != null && dbAccountRights.Count > 0)
                 {
-                    cachedRights = new CachedRight
+                    cachedRights = new AUTH_CACHE_Right
                     {
                         LastAccessedAt_UTC = DateTime.UtcNow,
                         Rights = dbAccountRights.Select(x => x.right_code).ToHashSet()
@@ -152,6 +154,20 @@ namespace Core.Auth.Services
                 logger.Error("Failed to import rights: ", ex);
 
                 return new ResultOf(ex, "Failed to import rights.");
+            }
+        }
+
+        static async Task RefreshCache()
+        {
+            try
+            {
+                // TODO implement cache refresh
+
+                await Task.Delay(100);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to refresh rights cache: ", ex);
             }
         }
     }

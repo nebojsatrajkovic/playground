@@ -2,6 +2,7 @@
 using Core.Auth.Database.ORM;
 using Core.Auth.Enumeration;
 using Core.Auth.Models.Account;
+using Core.Auth.Models.Cache;
 using Core.DB.Plugin.MySQL;
 using Core.Shared.Configuration;
 using Core.Shared.Models;
@@ -15,17 +16,17 @@ namespace Core.Auth.Services
 {
     public static class AuthenticationService
     {
-        static readonly CORE_TS_Dictionary<string, auth_session.ORM> sessionsCache;
-        static readonly Timer sessionCacheRefreshTimer;
+        static readonly CORE_TS_Dictionary<string, AUTH_CACHE_Session> sessionsCache;
+        static readonly Timer cacheRefreshTimer;
         static readonly Timer sessionCleanupTimer;
 
         static readonly ILog logger = LogManager.GetLogger(typeof(AuthenticationService));
 
         static AuthenticationService()
         {
-            sessionsCache = new CORE_TS_Dictionary<string, auth_session.ORM>(TimeSpan.FromMinutes(60));
-            sessionCacheRefreshTimer = new Timer(_ => RefreshSessionCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
-            sessionCleanupTimer = new Timer(_ => CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
+            sessionsCache = new(TimeSpan.FromMinutes(10));
+            cacheRefreshTimer = new Timer(async _ => await RefreshCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
+            sessionCleanupTimer = new Timer(async _ => await CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
         }
 
         public static ResultOf<LogIn_Response> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter)
@@ -83,7 +84,16 @@ namespace Core.Auth.Services
 
                 AUTH_Cookie.UpdateCookie(context, session.session_token);
 
-                sessionsCache.AddOrUpdate(session.session_token, session);
+                sessionsCache.AddOrUpdate(session.session_token, new AUTH_CACHE_Session
+                {
+                    ValidUntil_UTC = session.valid_to,
+                    SessionInfo = new AUTH_CACHE_SessionInfo
+                    {
+                        SessionID = session.auth_session_id,
+                        AccountID = session.account_refid,
+                        TenantID = session.tenant_refid
+                    }
+                });
 
                 returnValue = new ResultOf<LogIn_Response>(new LogIn_Response { IsSuccess = true });
             }
@@ -136,10 +146,8 @@ namespace Core.Auth.Services
             return returnValue;
         }
 
-        public static ResultOf<SessionInfo> GetSessionInfo(HttpContext context, CORE_DB_Connection connection)
+        public static async Task<ResultOf<SessionInfo>> GetSessionInfo(HttpContext context, CORE_DB_Connection connection)
         {
-            ResultOf<SessionInfo> returnValue;
-
             try
             {
                 var sessionToken = GetSessionToken(context);
@@ -149,39 +157,65 @@ namespace Core.Auth.Services
                     return new ResultOf<SessionInfo>(CORE_OperationStatus.FAILED);
                 }
 
-                auth_session.ORM? session = null;
+                AUTH_CACHE_Session? session = null;
 
-                if (sessionsCache.TryGetValue(sessionToken, out auth_session.ORM? cachedSession) && cachedSession != null)
+                var isCached = false;
+
+                if (sessionsCache.TryGetValue(sessionToken, out session) && session != null)
                 {
-                    session = cachedSession;
+                    isCached = true;
                 }
                 else
                 {
-                    session = auth_session.Database.Search(connection, new auth_session.QueryParameter
+                    var dbSession = (await auth_session.Database.SearchAsync(connection, new auth_session.QueryParameter
                     {
                         is_deleted = false,
                         session_token = sessionToken
-                    }).FirstOrDefault();
+                    })).FirstOrDefault();
+
+                    if (dbSession != null)
+                    {
+                        session = new AUTH_CACHE_Session
+                        {
+                            ValidUntil_UTC = dbSession.valid_to,
+                            SessionInfo = new AUTH_CACHE_SessionInfo
+                            {
+                                SessionID = dbSession.auth_session_id,
+                                AccountID = dbSession.account_refid,
+                                TenantID = dbSession.tenant_refid
+                            }
+                        };
+                    }
                 }
 
-                if (session == null || session.valid_to < DateTime.UtcNow)
+                if (session == null || session.ValidUntil_UTC <= DateTime.UtcNow)
                 {
                     if (session != null)
                     {
-                        sessionsCache.Remove(session.session_token);
+                        sessionsCache.Remove(sessionToken);
 
-                        auth_session.Database.SoftDelete(connection, session);
+                        await auth_session.Database.SoftDeleteAsync(connection, new auth_session.ORM
+                        {
+                            session_token = sessionToken
+                        });
                     }
 
                     AUTH_Cookie.RemoveCookie(context);
 
                     return new ResultOf<SessionInfo>(CORE_OperationStatus.FAILED);
                 }
-
-                returnValue = new ResultOf<SessionInfo>(new SessionInfo
+                else
                 {
-                    AccountID = session.account_refid,
-                    TenantID = session.tenant_refid,
+                    if (!isCached)
+                    {
+                        sessionsCache.AddOrUpdate(sessionToken, session);
+                    }
+                }
+
+                return new ResultOf<SessionInfo>(new SessionInfo
+                {
+                    AccountID = session.SessionInfo.AccountID,
+                    TenantID = session.SessionInfo.TenantID,
                     SessionToken = sessionToken
                 });
             }
@@ -189,10 +223,8 @@ namespace Core.Auth.Services
             {
                 logger.Error("Failed to validate session: ", ex);
 
-                returnValue = new ResultOf<SessionInfo>(ex);
+                return new ResultOf<SessionInfo>(ex);
             }
-
-            return returnValue;
         }
 
         public static ResultOf<TriggerForgotPassword_Response> TriggerForgotPassword(HttpContext context, CORE_DB_Connection connection, TriggerForgotPassword_Request parameter)
@@ -360,39 +392,42 @@ namespace Core.Auth.Services
             return sessionToken ?? string.Empty;
         }
 
-        static void RefreshSessionCache()
+        static async Task RefreshCache()
         {
             try
             {
-                var currentSessionsByTenant = sessionsCache.ToList().GroupBy(x => x.tenant_refid).ToDictionary(x => x.Key, x => x.ToList());
+                var currentSessionsByTenant = sessionsCache.ToList().GroupBy(x => x.SessionInfo.TenantID).ToDictionary(x => x.Key, x => x.ToList());
 
                 if (currentSessionsByTenant.Count == 0) { return; }
 
-                DB_Action.ExecuteCommitAction(CORE_Configuration.Database.ConnectionString, (CORE_DB_Connection DB_Connection) =>
+                await DB_Action.ExecuteCommitAction(CORE_Configuration.Database.ConnectionString, async (CORE_DB_Connection DB_Connection) =>
                 {
                     foreach (var tenantId in currentSessionsByTenant.Keys)
                     {
                         var sessions = currentSessionsByTenant[tenantId];
 
-                        var sessionIds = sessions.Select(x => (object?)x.auth_session_id).ToList();
+                        var sessionIds = sessions.Select(x => (object?)x.SessionInfo.SessionID).ToList();
 
-                        var dbSessions = auth_session.Database.Search(DB_Connection, sessionIds)
-                            .GroupBy(x => x.session_token).ToDictionary(x => x.Key, x => x.First());
+                        var dbSessions = await auth_session.Database.SearchAsync(DB_Connection, sessionIds);
 
-                        foreach (var session in sessions)
+                        foreach (var dbSession in dbSessions)
                         {
-                            if (dbSessions.TryGetValue(session.session_token, out var dbSession) && dbSession != null)
+                            if (dbSession.is_deleted || dbSession.valid_to <= DateTime.UtcNow)
                             {
-                                if (dbSession.is_deleted || dbSession.valid_to < DateTime.UtcNow)
-                                {
-                                    sessionsCache.Remove(session.session_token);
-                                }
-
-                                sessionsCache.AddOrUpdate(session.session_token, dbSession);
+                                sessionsCache.Remove(dbSession.session_token);
                             }
                             else
                             {
-                                sessionsCache.Remove(session.session_token);
+                                sessionsCache.AddOrUpdate(dbSession.session_token, new AUTH_CACHE_Session
+                                {
+                                    ValidUntil_UTC = dbSession.valid_to,
+                                    SessionInfo = new AUTH_CACHE_SessionInfo
+                                    {
+                                        SessionID = dbSession.auth_session_id,
+                                        AccountID = dbSession.account_refid,
+                                        TenantID = dbSession.tenant_refid
+                                    }
+                                });
                             }
                         }
                     }
@@ -404,36 +439,34 @@ namespace Core.Auth.Services
             }
         }
 
-        static void CleanupSessions()
+        static async Task CleanupSessions()
         {
             try
             {
-                DB_Action.ExecuteCommitAction(CORE_Configuration.Database.ConnectionString, (CORE_DB_Connection DB_Connection) =>
+                await DB_Action.ExecuteCommitAction(CORE_Configuration.Database.ConnectionString, async (CORE_DB_Connection DB_Connection) =>
                 {
-                    var tenants = auth_tenant.Database.Search(DB_Connection, new auth_tenant.QueryParameter
+                    var tenants = await auth_tenant.Database.SearchAsync(DB_Connection, new auth_tenant.QueryParameter
                     {
                         is_deleted = false
                     });
 
                     foreach (var tenant in tenants)
                     {
-                        var expiredSessions = Get_ExpiredSessions_which_AreNotDeleted.Invoke(DB_Connection.Connection, DB_Connection.Transaction, new P_GESwAND
+                        var expiredSessions = await Get_ExpiredSessions_which_AreNotDeleted.InvokeAsync(DB_Connection.Connection, DB_Connection.Transaction, new P_GESwAND
                         {
                             TenantID = tenant.auth_tenant_id,
                             DateThreshold = DateTime.UtcNow
                         });
 
-                        if (expiredSessions != null && expiredSessions.Count > 0)
-                        {
-                            var expiredSessionORMs = expiredSessions.Select(x => new auth_session.ORM { auth_session_id = x.auth_session_id }).ToList();
+                        if (expiredSessions == null || expiredSessions.Count == 0) return;
 
-                            auth_session.Database.SoftDelete(DB_Connection, expiredSessionORMs);
+                        var expiredSessionORMs = expiredSessions.Select(x => new auth_session.ORM { auth_session_id = x.auth_session_id }).ToList();
 
-                            foreach (var expiredSession in expiredSessions)
-                            {
-                                sessionsCache.Remove(expiredSession.session_token);
-                            }
-                        }
+                        await auth_session.Database.SoftDeleteAsync(DB_Connection, expiredSessionORMs);
+
+                        var ids = expiredSessions.Select(x => x.session_token).ToList();
+
+                        sessionsCache.Remove(ids);
                     }
                 });
             }

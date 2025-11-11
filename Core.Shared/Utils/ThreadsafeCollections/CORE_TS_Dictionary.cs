@@ -164,6 +164,26 @@ namespace Core.Shared.Utils.ThreadsafeCollections
         }
 
         /// <summary>
+        /// Remove elements by provided keys in a thread-safe manner
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public void Remove(List<TKey> keys)
+        {
+            if (keys == null || keys.Count == 0) return;
+
+            ThrowIfDisposed();
+
+            lock (padlock)
+            {
+                foreach (var key in keys)
+                {
+                    dictionary.Remove(key);
+                }
+            }
+        }
+
+        /// <summary>
         /// Clear the entire dictionary in a thread-safe manner
         /// </summary>
         public void Clear()

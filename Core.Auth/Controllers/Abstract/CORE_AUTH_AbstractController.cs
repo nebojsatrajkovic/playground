@@ -19,7 +19,12 @@ namespace Core.Auth.Controllers.Abstract
 
         protected override void Authenticate(CORE_DB_Connection connection)
         {
-            var sessionInfo = AuthenticationService.GetSessionInfo(HttpContext, connection);
+            AuthenticateAsync(connection).GetAwaiter().GetResult();
+        }
+
+        protected override async Task AuthenticateAsync(CORE_DB_Connection connection)
+        {
+            var sessionInfo = await AuthenticationService.GetSessionInfo(HttpContext, connection);
 
             if (!sessionInfo.Succeeded)
             {
@@ -33,7 +38,12 @@ namespace Core.Auth.Controllers.Abstract
 
         protected override void Authorize(CORE_DB_Connection connection, List<string> requiredRights)
         {
-            var result = AuthorizationService.ValidateRequiredRightsAsync(connection, requiredRights).Result;
+            AuthorizeAsync(connection, requiredRights).GetAwaiter().GetResult();
+        }
+
+        protected override async Task AuthorizeAsync(CORE_DB_Connection connection, List<string> requiredRights)
+        {
+            var result = await AuthorizationService.ValidateRequiredRightsAsync(connection, requiredRights);
 
             if (!result.Succeeded)
             {
