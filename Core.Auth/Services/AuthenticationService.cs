@@ -17,16 +17,16 @@ namespace Core.Auth.Services
     public static class AuthenticationService
     {
         static readonly CORE_TS_Dictionary<string, AUTH_CACHE_Session> sessionsCache;
-        static readonly Timer cacheRefreshTimer;
-        static readonly Timer sessionCleanupTimer;
+        static readonly Timer refreshCacheTimer;
+        static readonly Timer cleanupSessionsTimer;
 
         static readonly ILog logger = LogManager.GetLogger(typeof(AuthenticationService));
 
         static AuthenticationService()
         {
             sessionsCache = new(TimeSpan.FromMinutes(10));
-            cacheRefreshTimer = new Timer(async _ => await RefreshCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
-            sessionCleanupTimer = new Timer(async _ => await CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
+            refreshCacheTimer = new Timer(async _ => await RefreshCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
+            cleanupSessionsTimer = new Timer(async _ => await CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
         }
 
         public static ResultOf<LogIn_Response> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter)

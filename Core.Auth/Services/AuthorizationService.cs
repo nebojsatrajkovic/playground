@@ -11,14 +11,14 @@ namespace Core.Auth.Services
     public static class AuthorizationService
     {
         static readonly CORE_TS_Dictionary<int, AUTH_CACHE_Right> CachedRights;
-        static readonly Timer cacheRefreshTimer;
+        static readonly Timer refreshCacheTimer;
 
         static readonly ILog logger = LogManager.GetLogger(typeof(AuthorizationService));
 
         static AuthorizationService()
         {
             CachedRights = new(TimeSpan.FromMinutes(10));
-            cacheRefreshTimer = new Timer(async _ => await RefreshCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
+            refreshCacheTimer = new Timer(async _ => await RefreshCache(), null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
         }
 
         public async static Task<ResultOf> ValidateRequiredRightsAsync(CORE_DB_Connection connection, List<string> requiredRights)
