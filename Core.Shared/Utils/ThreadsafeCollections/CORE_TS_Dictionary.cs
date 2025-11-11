@@ -1,4 +1,6 @@
-﻿namespace Core.Shared.Utils.ThreadsafeCollections
+﻿using System.Runtime.CompilerServices;
+
+namespace Core.Shared.Utils.ThreadsafeCollections
 {
     public class CORE_TS_Dictionary<TKey, TValue> : IDisposable where TKey : notnull
     {
@@ -29,7 +31,7 @@
         {
             get
             {
-                if (disposed) { return 0; }
+                ThrowIfDisposed();
 
                 lock (padlock)
                 {
@@ -45,7 +47,7 @@
         /// <param name="value"></param>
         public void Add(TKey key, TValue value)
         {
-            if (disposed) return;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -61,7 +63,7 @@
         /// <returns></returns>
         public bool TryAdd(TKey key, TValue value)
         {
-            if (disposed) return false;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -81,7 +83,7 @@
         /// <param name="value"></param>
         public void AddOrUpdate(TKey key, TValue value)
         {
-            if (disposed) return;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -96,7 +98,7 @@
         /// <returns></returns>
         public TValue? Get(TKey key)
         {
-            if (disposed) return default;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -115,7 +117,7 @@
         /// <returns></returns>
         public List<TValue> ToList()
         {
-            if (disposed) return [];
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -131,11 +133,7 @@
         /// <returns></returns>
         public bool TryGetValue(TKey key, out TValue? value)
         {
-            if (disposed)
-            {
-                value = default;
-                return false;
-            }
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -157,7 +155,7 @@
         /// <returns></returns>
         public bool Remove(TKey key)
         {
-            if (disposed) return false;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -170,7 +168,7 @@
         /// </summary>
         public void Clear()
         {
-            if (disposed) return;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -185,7 +183,7 @@
         /// <returns></returns>
         public bool ContainsKey(TKey key)
         {
-            if (disposed) return false;
+            ThrowIfDisposed();
 
             lock (padlock)
             {
@@ -212,12 +210,16 @@
                 if (disposing)
                 {
                     cts?.Cancel();
-                    cleanupTask?.Wait();
+
+                    try
+                    {
+                        cleanupTask?.Wait();
+                    }
+                    catch (AggregateException) { }
 
                     lock (padlock)
                     {
                         dictionary.Clear();
-                        dictionary = null!;
                     }
                 }
 
@@ -227,9 +229,13 @@
 
         async Task CleanupExpiredEntries()
         {
+            if (expirationTime == null) return;
+
             while (cts != null && !cts.Token.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromMinutes(1), cts.Token);
+
+                ThrowIfDisposed();
 
                 lock (padlock)
                 {
@@ -254,5 +260,8 @@
         {
             Dispose(false);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(disposed, this);
     }
 }
