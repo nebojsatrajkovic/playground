@@ -1,5 +1,6 @@
 ﻿using Core.DB.Plugin.MySQL.Controllers;
 using Core.Shared.Configuration;
+using CoreCore.DB.Plugin.Shared.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Stripe;
@@ -93,6 +94,26 @@ namespace Core.Stripe.Controllers
 
                 return StatusCode(500);
             }
+        }
+
+        protected override void Authenticate(CORE_DB_Connection connection)
+        {
+            AuthenticateAsync(connection).GetAwaiter().GetResult();
+        }
+
+        protected override Task AuthenticateAsync(CORE_DB_Connection connection)
+        {
+            return Task.FromResult(true);
+        }
+
+        protected override void Authorize(CORE_DB_Connection connection, List<string> requiredRights)
+        {
+            AuthorizeAsync(connection, requiredRights).GetAwaiter().GetResult();
+        }
+
+        protected override Task AuthorizeAsync(CORE_DB_Connection connection, List<string> requiredRights)
+        {
+            return Task.FromResult(true);
         }
     }
 }

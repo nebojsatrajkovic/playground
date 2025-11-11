@@ -12,20 +12,20 @@ namespace Core.Auth.Controllers
     public class AuthenticationController(ILogger<AuthenticationController> logger) : CORE_AUTH_AbstractController(logger)
     {
         [HttpPost("log-in")]
-        public ResultOf<LogIn_Response> LogIn(LogIn_Request parameter)
+        public async Task<ResultOf<LogIn_Response>> LogIn(LogIn_Request parameter)
         {
-            return ExecuteUnauthenticatedCommitAction(() =>
+            return await ExecuteUnauthenticatedCommitAction_Async(async () =>
             {
-                return AuthenticationService.LogIn(HttpContext, DB_Connection, parameter);
+                return await AuthenticationService.LogIn(HttpContext, DB_Connection, parameter);
             });
         }
 
         [HttpPost("log-out")]
-        public ResultOf LogOut()
+        public async Task<ResultOf> LogOut()
         {
-            return ExecuteCommitAction(() =>
+            return await ExecuteCommitAction_Async(async () =>
             {
-                return AuthenticationService.LogOut(HttpContext, DB_Connection);
+                return await AuthenticationService.LogOut(HttpContext, DB_Connection);
             });
         }
 
@@ -41,29 +41,29 @@ namespace Core.Auth.Controllers
         }
 
         [HttpPost("trigger-forgot-password")]
-        public ResultOf<TriggerForgotPassword_Response> TriggerForgotPassword(TriggerForgotPassword_Request parameter)
+        public async Task<ResultOf<TriggerForgotPassword_Response>> TriggerForgotPassword(TriggerForgotPassword_Request parameter)
         {
-            return ExecuteUnauthenticatedCommitAction(() =>
+            return await ExecuteUnauthenticatedCommitAction_Async(async () =>
             {
-                return AuthenticationService.TriggerForgotPassword(HttpContext, DB_Connection, parameter);
+                return await AuthenticationService.TriggerForgotPassword(HttpContext, DB_Connection, parameter);
             });
         }
 
         [HttpPost("reset-password")]
-        public ResultOf<ResetPassword_Response> ResetPassword(ResetPassword_Request parameter)
+        public async Task<ResultOf<ResetPassword_Response>> ResetPassword(ResetPassword_Request parameter)
         {
-            return ExecuteUnauthenticatedCommitAction(() =>
+            return await ExecuteUnauthenticatedCommitAction_Async(async () =>
             {
-                return AuthenticationService.ResetPassword(DB_Connection, parameter);
+                return await AuthenticationService.ResetPassword(DB_Connection, parameter);
             });
         }
 
         [HttpPost("get-tenants-for-account-email")]
-        public ResultOf<List<TenantForAccount>> GetAccountTenants(GetTenantsForAccount_Request parameter)
+        public async Task<ResultOf<List<TenantForAccount>>> GetAccountTenants(GetTenantsForAccount_Request parameter)
         {
-            return ExecuteUnauthenticatedCommitAction(() =>
+            return await ExecuteUnauthenticatedCommitAction_Async(async () =>
             {
-                return AuthenticationService.GetAccountTenants(DB_Connection, parameter);
+                return await AuthenticationService.GetAccountTenants(DB_Connection, parameter);
             });
         }
     }

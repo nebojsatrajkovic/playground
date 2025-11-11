@@ -29,13 +29,13 @@ namespace Core.Auth.Services
             cleanupSessionsTimer = new Timer(async _ => await CleanupSessions(), null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
         }
 
-        public static ResultOf<LogIn_Response> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter)
+        public static async Task<ResultOf<LogIn_Response>> LogIn(HttpContext context, CORE_DB_Connection connection, LogIn_Request parameter)
         {
             ResultOf<LogIn_Response> returnValue;
 
             try
             {
-                var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
+                var accounts = await auth_account.Database.SearchAsync(connection, new auth_account.QueryParameter
                 {
                     email = parameter.Email,
                     is_deleted = false,
@@ -64,7 +64,7 @@ namespace Core.Auth.Services
                     return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_InvalidCredentials = true });
                 }
 
-                auth_session.Database.SoftDelete(connection, new auth_session.QueryParameter
+                await auth_session.Database.SoftDeleteAsync(connection, new auth_session.QueryParameter
                 {
                     account_refid = account.auth_account_id
                 });
@@ -80,7 +80,7 @@ namespace Core.Auth.Services
                     tenant_refid = account.tenant_refid
                 };
 
-                auth_session.Database.Save(connection, session);
+                await auth_session.Database.SaveAsync(connection, session);
 
                 AUTH_Cookie.UpdateCookie(context, session.session_token);
 
@@ -107,7 +107,7 @@ namespace Core.Auth.Services
             return returnValue;
         }
 
-        public static ResultOf LogOut(HttpContext context, CORE_DB_Connection connection)
+        public static async Task<ResultOf> LogOut(HttpContext context, CORE_DB_Connection connection)
         {
             ResultOf returnValue;
 
@@ -115,11 +115,11 @@ namespace Core.Auth.Services
             {
                 var sessionToken = AUTH_Cookie.GetSessionToken(context);
 
-                var session = auth_session.Database.Search(connection, new auth_session.QueryParameter
+                var session = (await auth_session.Database.SearchAsync(connection, new auth_session.QueryParameter
                 {
                     is_deleted = false,
                     session_token = sessionToken
-                }).FirstOrDefault();
+                })).FirstOrDefault();
 
                 if (session != null)
                 {
@@ -127,7 +127,7 @@ namespace Core.Auth.Services
                     session.is_deleted = true;
                     session.modified_at = DateTime.UtcNow;
 
-                    auth_session.Database.Save(connection, session);
+                    await auth_session.Database.SaveAsync(connection, session);
 
                     sessionsCache.Remove(session.session_token);
                 }
@@ -227,7 +227,7 @@ namespace Core.Auth.Services
             }
         }
 
-        public static ResultOf<TriggerForgotPassword_Response> TriggerForgotPassword(HttpContext context, CORE_DB_Connection connection, TriggerForgotPassword_Request parameter)
+        public static async Task<ResultOf<TriggerForgotPassword_Response>> TriggerForgotPassword(HttpContext context, CORE_DB_Connection connection, TriggerForgotPassword_Request parameter)
         {
             ResultOf<TriggerForgotPassword_Response> returnValue;
 
@@ -235,7 +235,7 @@ namespace Core.Auth.Services
             {
                 AUTH_Cookie.RemoveCookie(context);
 
-                var accounts = auth_account.Database.Search(connection, new auth_account.QueryParameter
+                var accounts = await auth_account.Database.SearchAsync(connection, new auth_account.QueryParameter
                 {
                     email = parameter.Email,
                     tenant_refid = parameter.TenantID > 0 ? parameter.TenantID : null
@@ -272,17 +272,17 @@ namespace Core.Auth.Services
             return returnValue;
         }
 
-        public static ResultOf<ResetPassword_Response> ResetPassword(CORE_DB_Connection connection, ResetPassword_Request parameter)
+        public static async Task<ResultOf<ResetPassword_Response>> ResetPassword(CORE_DB_Connection connection, ResetPassword_Request parameter)
         {
             ResultOf<ResetPassword_Response> returnValue;
 
             try
             {
-                var verificationToken = auth_verification_token.Database.Search(connection, new auth_verification_token.QueryParameter
+                var verificationToken = (await auth_verification_token.Database.SearchAsync(connection, new auth_verification_token.QueryParameter
                 {
                     is_deleted = false,
                     token = parameter.Token
-                }).FirstOrDefault();
+                })).FirstOrDefault();
 
                 if (verificationToken == null)
                 {
@@ -298,24 +298,24 @@ namespace Core.Auth.Services
                 {
                     verificationToken.is_deleted = true;
 
-                    auth_verification_token.Database.Save(connection, verificationToken);
+                    await auth_verification_token.Database.SaveAsync(connection, verificationToken);
 
                     connection.CommitAndBeginNewTransaction();
 
                     return new ResultOf<ResetPassword_Response>(CORE_OperationStatus.FAILED, "Forgot password request has expired, please retry");
                 }
 
-                var account = auth_account.Database.Search(connection, new auth_account.QueryParameter
+                var account = (await auth_account.Database.SearchAsync(connection, new auth_account.QueryParameter
                 {
                     auth_account_id = verificationToken.account_refid,
                     tenant_refid = verificationToken.tenant_refid
-                }).FirstOrDefault();
+                })).FirstOrDefault();
 
                 if (account == null)
                 {
                     verificationToken.is_deleted = true;
 
-                    auth_verification_token.Database.Save(connection, verificationToken);
+                    await auth_verification_token.Database.SaveAsync(connection, verificationToken);
 
                     connection.CommitAndBeginNewTransaction();
 
@@ -325,11 +325,11 @@ namespace Core.Auth.Services
                 verificationToken.is_processed = true;
                 verificationToken.is_confirmed = true;
 
-                auth_verification_token.Database.Save(connection, verificationToken);
+                await auth_verification_token.Database.SaveAsync(connection, verificationToken);
 
                 account.password_hash = PasswordHasher.Hash(parameter.Password);
 
-                auth_account.Database.Save(connection, account);
+                await auth_account.Database.SaveAsync(connection, account);
 
                 returnValue = new ResultOf<ResetPassword_Response>(new ResetPassword_Response { IsSuccess = true });
             }
@@ -343,13 +343,13 @@ namespace Core.Auth.Services
             return returnValue;
         }
 
-        public static ResultOf<List<TenantForAccount>> GetAccountTenants(CORE_DB_Connection connection, GetTenantsForAccount_Request parameter)
+        public static async Task<ResultOf<List<TenantForAccount>>> GetAccountTenants(CORE_DB_Connection connection, GetTenantsForAccount_Request parameter)
         {
             ResultOf<List<TenantForAccount>> returnValue;
 
             try
             {
-                var tenantsForAccount = Get_Tenants_for_AccountEmail.Invoke(connection.Connection, connection.Transaction, new P_GTfAE { Email = parameter.Email });
+                var tenantsForAccount = await Get_Tenants_for_AccountEmail.InvokeAsync(connection.Connection, connection.Transaction, new P_GTfAE { Email = parameter.Email });
 
                 var result = tenantsForAccount?.Select(x => new TenantForAccount
                 {
