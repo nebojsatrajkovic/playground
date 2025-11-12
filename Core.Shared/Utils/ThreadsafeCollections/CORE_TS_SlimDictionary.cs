@@ -1,20 +1,44 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Core.Shared.Utils.ThreadsafeCollections
 {
+    /// <summary>
+    /// Thread-safe lightweight dictionary optimized for frequent reads and occasional writes.
+    /// Optionally supports automatic expiration based on monotonic Stopwatch ticks,
+    /// avoiding DateTime clock drift. Suitable for in-memory caches or session tracking
+    /// with moderate concurrency requirements.
+    /// </summary>
     public class CORE_TS_SlimDictionary<TKey, TValue> : IDisposable where TKey : notnull
     {
         private volatile bool isDisposing;
 
         private readonly ReaderWriterLockSlim _lock;
 
-        private Dictionary<TKey, TValue> collection;
+        private Dictionary<TKey, (TValue Value, long LastAccessedTicks)> collection;
 
         public CORE_TS_SlimDictionary(int initialCapacity = 0)
         {
             isDisposing = false;
             _lock = new();
-            collection = initialCapacity > 0 ? new Dictionary<TKey, TValue>(initialCapacity) : [];
+            collection = initialCapacity > 0 ? new(initialCapacity) : new();
+        }
+
+        private readonly TimeSpan? expirationTime;
+        private readonly CancellationTokenSource? cts;
+        private readonly Task? cleanupTask;
+        private readonly long? expirationTicks;
+
+        public CORE_TS_SlimDictionary(TimeSpan expiration, int initialCapacity = 0)
+        {
+            isDisposing = false;
+            _lock = new();
+            collection = initialCapacity > 0 ? new(initialCapacity) : new();
+
+            expirationTime = expiration;
+            cts = new CancellationTokenSource();
+            cleanupTask = Task.Run(CleanupExpiredEntries, cts.Token);
+            expirationTicks = (long)(expiration.TotalSeconds * Stopwatch.Frequency);
         }
 
         /// <summary>
@@ -73,7 +97,7 @@ namespace Core.Shared.Utils.ThreadsafeCollections
 
             try
             {
-                collection[key] = value;
+                collection[key] = (value, Stopwatch.GetTimestamp());
             }
             finally
             {
@@ -85,15 +109,31 @@ namespace Core.Shared.Utils.ThreadsafeCollections
         {
             ThrowIfDisposed();
 
-            _lock.EnterReadLock();
+            _lock.EnterUpgradeableReadLock();
 
             try
             {
-                return collection.TryGetValue(key, out value);
+                if (collection.TryGetValue(key, out var entry))
+                {
+                    value = entry.Value;
+                    _lock.EnterWriteLock();
+                    try
+                    {
+                        collection[key] = (entry.Value, Stopwatch.GetTimestamp());
+                    }
+                    finally
+                    {
+                        _lock.ExitWriteLock();
+                    }
+                    return true;
+                }
+
+                value = default;
+                return false;
             }
             finally
             {
-                _lock.ExitReadLock();
+                _lock.ExitUpgradeableReadLock();
             }
         }
 
@@ -109,7 +149,7 @@ namespace Core.Shared.Utils.ThreadsafeCollections
             {
                 foreach (var kvp in collection)
                 {
-                    if (ShouldRemove(kvp.Value))
+                    if (ShouldRemove(kvp.Value.Value))
                     {
                         keysToRemove.Add(kvp.Key);
                     }
@@ -139,23 +179,78 @@ namespace Core.Shared.Utils.ThreadsafeCollections
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
-
             if (isDisposing) return;
             isDisposing = true;
-
-            _lock.EnterWriteLock();
+            GC.SuppressFinalize(this);
 
             try
             {
-                collection.Clear();
+                cts?.Cancel();
+                cleanupTask?.Wait(TimeSpan.FromSeconds(2));
+            }
+            catch (Exception)
+            {
+
             }
             finally
             {
-                _lock.ExitWriteLock();
+                if (_lock.TryEnterWriteLock(500))
+                {
+                    try
+                    {
+                        collection.Clear();
+                    }
+                    finally
+                    {
+                        _lock.ExitWriteLock();
+                        _lock.Dispose();
+                    }
+                }
+                else
+                {
+                    _lock.Dispose();
+                }
             }
+        }
 
-            _lock.Dispose();
+        async Task CleanupExpiredEntries()
+        {
+            if (expirationTicks is null) return;
+
+            var delay = TimeSpan.FromMilliseconds(Math.Max(1000, expirationTime!.Value.TotalMilliseconds / 2));
+
+            while (cts != null && !cts.Token.IsCancellationRequested)
+            {
+                await Task.Delay(delay, cts.Token).ConfigureAwait(false);
+
+                ThrowIfDisposed();
+
+                _lock.EnterWriteLock();
+
+                try
+                {
+                    long now = Stopwatch.GetTimestamp();
+
+                    var expiredKeys = new List<TKey>();
+
+                    foreach (var kvp in collection)
+                    {
+                        if ((now - kvp.Value.LastAccessedTicks) > expirationTicks)
+                        {
+                            expiredKeys.Add(kvp.Key);
+                        }
+                    }
+
+                    foreach (var key in expiredKeys)
+                    {
+                        collection.Remove(key);
+                    }
+                }
+                finally
+                {
+                    _lock.ExitWriteLock();
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
