@@ -97,7 +97,7 @@ namespace Core.Shared.Utils.ThreadsafeCollections
             }
         }
 
-        public void RemoveExpiredKeys(Func<TValue, bool> isExpired)
+        public void Remove(Func<TValue, bool> ShouldRemove)
         {
             ThrowIfDisposed();
 
@@ -109,7 +109,7 @@ namespace Core.Shared.Utils.ThreadsafeCollections
             {
                 foreach (var kvp in collection)
                 {
-                    if (isExpired(kvp.Value))
+                    if (ShouldRemove(kvp.Value))
                     {
                         keysToRemove.Add(kvp.Key);
                     }
