@@ -229,8 +229,6 @@ namespace Core.Auth.Services
 
         public static async Task<ResultOf<TriggerForgotPassword_Response>> TriggerForgotPassword(HttpContext context, CORE_DB_Connection connection, TriggerForgotPassword_Request parameter)
         {
-            ResultOf<TriggerForgotPassword_Response> returnValue;
-
             try
             {
                 AUTH_Cookie.RemoveCookie(context);
@@ -248,7 +246,7 @@ namespace Core.Auth.Services
 
                 if (accounts.Count > 1)
                 {
-                    returnValue = new ResultOf<TriggerForgotPassword_Response>(CORE_OperationStatus.SUCCESS, new TriggerForgotPassword_Response { IfError_MustSpecifyTenant = true });
+                    return new ResultOf<TriggerForgotPassword_Response>(CORE_OperationStatus.SUCCESS, new TriggerForgotPassword_Response { IfError_MustSpecifyTenant = true });
                 }
 
                 var account = accounts[0];
@@ -260,16 +258,14 @@ namespace Core.Auth.Services
                     return new ResultOf<TriggerForgotPassword_Response>(sendVerificationEmail);
                 }
 
-                returnValue = new ResultOf<TriggerForgotPassword_Response>(new TriggerForgotPassword_Response { IsSuccess = true });
+                return new ResultOf<TriggerForgotPassword_Response>(new TriggerForgotPassword_Response { IsSuccess = true });
             }
             catch (Exception ex)
             {
                 logger.Error("Failed to trigger forgot password: ", ex);
 
-                returnValue = new ResultOf<TriggerForgotPassword_Response>(ex);
+                return new ResultOf<TriggerForgotPassword_Response>(ex);
             }
-
-            return returnValue;
         }
 
         public static async Task<ResultOf<ResetPassword_Response>> ResetPassword(CORE_DB_Connection connection, ResetPassword_Request parameter)
