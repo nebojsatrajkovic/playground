@@ -248,7 +248,7 @@ namespace Core.Auth.Services
 
                 if (accounts.Count > 1)
                 {
-                    returnValue = new ResultOf<TriggerForgotPassword_Response>(CORE_OperationStatus.FAILED, new TriggerForgotPassword_Response { IfError_MustSpecifyTenant = true });
+                    returnValue = new ResultOf<TriggerForgotPassword_Response>(CORE_OperationStatus.SUCCESS, new TriggerForgotPassword_Response { IfError_MustSpecifyTenant = true });
                 }
 
                 var account = accounts[0];

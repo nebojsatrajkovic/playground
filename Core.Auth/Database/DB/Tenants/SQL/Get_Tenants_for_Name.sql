@@ -4,5 +4,5 @@
 		auth_tenant.tenant_name
 		FROM auth_tenant
 		WHERE auth_tenant.is_deleted = 0 And
-		Lower(auth_tenant.tenant_name) = Concat('%', Lower(@Name), '%')
+		Lower(auth_tenant.tenant_name) = Lower(@Name)
 	
