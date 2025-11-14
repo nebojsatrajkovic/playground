@@ -9,14 +9,20 @@
 
 	<ItemGroup>
 	  <None Remove="Database\DB\Accounts\SQL\Get_Accounts_for_Email.sql" />
+	  <None Remove="Database\DB\Accounts\SQL\Get_Account_Rights.sql" />
+	  <None Remove="Database\DB\Accounts\SQL\Get_ExpiredSessions_which_AreNotDeleted.sql" />
 	  <None Remove="Database\DB\Accounts\SQL\Get_Tenants_for_AccountEmail.sql" />
 	  <None Remove="Database\DB\Tenants\SQL\Get_Tenants_for_Name.sql" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Accounts_for_Email.sql" />
+	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Account_Rights.sql" />
+	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_ExpiredSessions_which_AreNotDeleted.sql" />
 	  <EmbeddedResource Include="Database\DB\Accounts\SQL\Get_Tenants_for_AccountEmail.sql" />
-	  <EmbeddedResource Include="Database\DB\Tenants\SQL\Get_Tenants_for_Name.sql" />
+	  <EmbeddedResource Include="Database\DB\Tenants\SQL\Get_Tenants_for_Name.sql">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>

@@ -44,24 +44,24 @@ namespace Core.Auth.Services
 
                 if (accounts == null || accounts.Count == 0)
                 {
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_InvalidCredentials = true });
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.SUCCESS, new LogIn_Response { IfError_InvalidCredentials = true });
                 }
 
                 if (accounts.Count > 1)
                 {
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_MustSpecifyTenant = true });
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.SUCCESS, new LogIn_Response { IfError_MustSpecifyTenant = true });
                 }
 
                 var account = accounts[0];
 
                 if (!account.is_verified)
                 {
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_AccountIsNotVerified = true });
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.SUCCESS, new LogIn_Response { IfError_AccountIsNotVerified = true });
                 }
 
                 if (!PasswordHasher.Verify(parameter.Password, account.password_hash))
                 {
-                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.FAILED, new LogIn_Response { IfError_InvalidCredentials = true });
+                    return new ResultOf<LogIn_Response>(CORE_OperationStatus.SUCCESS, new LogIn_Response { IfError_InvalidCredentials = true });
                 }
 
                 await auth_session.Database.SoftDeleteAsync(connection, new auth_session.QueryParameter
